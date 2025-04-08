@@ -1,8 +1,138 @@
-/*
+.lexicon-table {
+    display: block;
+    border-collapse: collapse;
+    overflow: auto;
+    white-space: nowrap;
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 2px;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.lexicon-table tbody {
+    display: table;
+    width: 100%
+}
 
-If your plugin does not need CSS, delete this file.
+.lexicon-table tr:hover:not(:first-child):not(:nth-child(2)) {
+    background-color: var(--color-base-05);
+}
 
-*/
+.lexicon-table tr td:nth-child(6), .lexicon-table tr th:nth-child(6) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+}
+  
+.lexicon-table td {
+    padding: 4px 24px;
+}
+
+.lexicon-header-row {
+    font-weight: bold;
+}
+
+
+.lexicon-button:not(:hover) {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.lexicon-button:hover {
+    background-color: transparent;
+}
+
+.lexicon-button {
+    vertical-align: middle;
+    align-items: center;
+    align-self: center;
+    padding: 4px;
+    aspect-ratio: 1;
+    border-radius: 12px;
+}
+
+
+
+.english-button {
+    color: steelblue !important;
+    font-style: italic;
+}
+.etymology-button.empty {
+    color: gray !important;
+}
+
+.etymology-language {
+    font-weight: bold;
+}
+.etymology-english {
+    color: steelblue !important;
+    font-style: italic;
+}
+
+.notes-button {
+    color: crimson !important;
+    font-family: 'Courier New', Courier, monospace;
+}
+.notes-button.empty {
+    color: gray !important;
+}
+
+
+
+.inflection {
+    background-color: #ece7ff;
+    border-radius: 12px;
+    
+}
+
+.inflection-card {
+    background-color: #e0d9ff;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+.inflection-card.is-collapsed {
+    border-radius: 12px;
+}
+.inflection-contents {
+    padding: 4px;
+}
+.inflection-label {
+    display: inline-block;
+    padding-left: 4px;
+}
+
+.inflection-fold {
+    display: inline-block;
+    transform: translate(0, 15%);
+}
+
+.inflection-fold.is-collapsed > .svg-icon {
+    transform: rotate(calc(var(--direction) * -1 * 90deg));
+}
+
+.inflection-table {
+    background-color: var(--background-primary);
+    text-align: center;
+    border-collapse: collapse;
+}
+.inflection-table td {
+    border: 1px solid var(--background-modifier-border);
+    padding: 4px 8px;
+}
+.inflection-table tr:hover:not(:first-child) {
+    background-color: transparent;
+}
+
+/* .inflection-fold > .svg-icon {
+    transition: transform 100ms ease-in-out;
+} */
+
+.lexicon-search {
+    background: none;
+    border: none;
+    box-shadow: var(--input-shadow);
+    border-radius: 12px;
+    padding: 4px 8px;
+    width: 100%;
+    min-width: 60px;
+  }
