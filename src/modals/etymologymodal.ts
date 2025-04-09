@@ -1,80 +1,94 @@
-import { App, Modal, Setting } from "obsidian";
+import { App, MenuSeparator, Modal, setIcon, Setting } from "obsidian";
 
 export class EtymologyModal extends Modal {
-    constructor(app: App, original: { language: string, word: string, english: string, relationship: string }[], onSubmit: (result: string) => void) {
-        super(app);
-        this.setTitle('Edit Lexeme');
+    original: {language: string, word: string, english: string, relationship: string}[];
+    donations: {language: string, word: string, english: string, relationship: string}[];
 
-        let original_languages: string[] = [];
-        let original_words: string[] = [];
-        let original_english: string[] = [];
-        let original_relationships: string[] = [];
+    populateContent(content: HTMLDivElement) {
+        content.empty();
 
-        if (Symbol.iterator in Object(original)) {
-            for (const entry of original) {
-                original_languages.push(entry.language);
-                original_words.push(entry.word);
-                original_english.push(entry.english);
-                original_relationships.push(entry.relationship);
-            }
+        if (this.donations.length == 0) {
+            content.createEl("div", { text: "Click the plus below to add an etymology donation", cls: "etymology-modal-section" } );
         }
 
-        let etymology_languages: string[] = original_languages;
-        new Setting(this.contentEl)
-            .setName('Etymology Languages')
-            .addTextArea((text) => {
-                text.onChange((value) => {
-                    etymology_languages = value.split("\n");
+        for (const [i, donation] of this.donations.entries()) {
+            let section = content.createEl("div", { text: "Etymology Donation " + (i + 1), cls: "etymology-modal-section" } );
+            new Setting(section)
+                .setName('Language')
+                .addText((text) => {
+                    text.onChange((value) => {
+                        donation.language = value;
+                    });
+                    text.setValue(this.original[i].language);
                 });
-                text.setValue(original_languages.join("\n"));
-            });
-        let etymology_words: string[] = original_words;
-        new Setting(this.contentEl)
-            .setName('Etymology Words')
-            .addTextArea((text) => {
-                text.onChange((value) => {
-                    etymology_words = value.split("\n");
+            new Setting(section)
+                .setName('Word')
+                .addText((text) => {
+                    text.onChange((value) => {
+                        donation.word = value;
+                    });
+                    text.setValue(this.original[i].word);
                 });
-                text.setValue(original_words.join("\n"));
-            });
-        let etymology_english: string[] = original_english;
-        new Setting(this.contentEl)
-            .setName('Etymology English')
-            .addTextArea((text) => {
-                text.onChange((value) => {
-                    etymology_english = value.split("\n");
+            new Setting(section)
+                .setName('English')
+                .addText((text) => {
+                    text.onChange((value) => {
+                        donation.english = value;
+                    });
+                    text.setValue(this.original[i].english);
                 });
-                text.setValue(original_english.join("\n"));
-            });
-        let etymology_relationships: string[] = original_relationships;
-        new Setting(this.contentEl)
-            .setName('Etymology Relationships')
-            .addTextArea((text) => {
-                text.onChange((value) => {
-                    etymology_relationships = value.split("\n");
+            new Setting(section)
+                .setName('Relationship')
+                .addDropdown((value) => {
+                    value.onChange((value) => {
+                        donation.relationship = value;
+                    });
+                    if (i == 0) {
+                        value.addOption("root", "root");
+                    } else {
+                        value.addOption("concat", "concat (+)");
+                        value.addOption("infix", "infix (<)");
+                        value.addOption("suppletion", "suppletion (~)");
+                        value.setValue(this.original[i].relationship);
+                    }
+                    
                 });
-                text.setValue(original_relationships.join("\n"));
-            });
+        }
+    }
 
-        new Setting(this.contentEl)
-            .addButton((btn) =>
-                btn
-                    .setButtonText('Edit')
-                    .setCta()
-                    .onClick(() => {
-                        let etymology = [];
-                        if (etymology_languages[0] != "" && etymology_words[0] != "" && etymology_english[0] != "" && etymology_relationships[0] != "") {
-                            for (const [i, language] of etymology_languages.entries()) {
-                                etymology.push({ "language": "", "word": "", "english": "", "relationship": "" });
-                                etymology[i].language = language;
-                                etymology[i].word = etymology_words[i];
-                                etymology[i].english = etymology_english[i];
-                                etymology[i].relationship = etymology_relationships[i];
-                            }
-                        }
+    constructor(app: App, original: { language: string, word: string, english: string, relationship: string }[], onSubmit: (result: string) => void) {
+        super(app);
 
-                        this.close();
-                        onSubmit(JSON.stringify(etymology));
-                    }));
+        this.original = original;
+        this.donations = original;
+
+        this.setTitle('Edit Lexeme');
+
+        let donation_content = this.contentEl.createEl("div", { cls: "etymology-donation-content" } );
+
+        this.populateContent(donation_content);
+
+        let management_content = this.contentEl.createEl("div", { cls: "etymology-management-content" } );
+
+        let remove_button = management_content.createEl("button", { cls: "etymology-modal-button etymology-remove-button" } );
+        setIcon(remove_button, 'minus');
+        remove_button.onclick = (ev) => {
+            this.donations.pop();
+            this.populateContent(donation_content);
+        }
+
+        let add_button = management_content.createEl("button", { cls: "etymology-modal-button etymology-add-button" } );
+        setIcon(add_button, 'plus');
+        add_button.onclick = (ev) => {
+            this.donations.push({language: "", word: "", english: "", relationship: ""})
+            this.populateContent(donation_content);
+        }
+
+        let done_button = management_content.createEl("button", {  text: "Done", cls: " etymology-modal-button mod-cta etymology-done-button" } )
+
+        done_button.onclick = (ev) => {
+            this.close();
+            onSubmit(JSON.stringify(this.donations));
+        }
     }
 }
