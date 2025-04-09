@@ -59,6 +59,10 @@ export class EtymologyModal extends Modal {
     constructor(app: App, original: { language: string, word: string, english: string, relationship: string }[], onSubmit: (result: string) => void) {
         super(app);
 
+        if (original == null || original == undefined) {
+            original = [];
+        }
+
         this.original = original;
         this.donations = original;
 
