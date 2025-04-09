@@ -1,5 +1,6 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, WorkspaceLeaf } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, WorkspaceLeaf } from 'obsidian';
 import { LexiconView, VIEW_TYPE_LEXICON } from "./views/lexiconview"
+import * as path from 'path';
 
 
 interface LexiconSettings {
@@ -24,6 +25,37 @@ export default class Lexicon extends Plugin {
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new SampleSettingTab(this.app, this));
+
+		// Add an entry to the file-explorer context menu to create a new lexicon
+		this.registerEvent(
+			this.app.workspace.on('file-menu', (menu, file) => {
+				const parent = file instanceof TFile ? file.parent : file;
+
+				menu.addItem((item) => {
+					item
+					.setTitle('New Lexicon')
+					.setIcon('book-a')
+					.onClick(async () => {
+						if (parent) {
+							const {vault} = this.app;
+							const {adapter} = vault;
+							let filePath = parent.path + "/New Lexicon.lexicon";
+							try {
+								const fileExists = await adapter.exists(filePath);
+								if (fileExists)
+									new Notice(`${filePath} already exists`);
+					
+								const File = await vault.create(filePath, '[]');
+								const leaf = this.app.workspace.getLeaf(true);
+								await leaf.openFile(File);
+							} catch (error) {
+								console.log(error.toString());
+							}
+						}
+					});
+				});
+			})
+		);
 	}
 
 	onunload() {

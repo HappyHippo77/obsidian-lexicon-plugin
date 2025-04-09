@@ -1,35 +1,8 @@
-import { TextFileView, MarkdownRenderer, setIcon } from "obsidian";
+import { TextFileView, MarkdownRenderer, setIcon, IconName, App, Modal, Setting } from "obsidian";
+import { WordModal } from "src/modals/wordmodal";
 
 export const VIEW_TYPE_LEXICON = "lexicon-view";
 
-import { App, Modal, Setting } from 'obsidian';
-
-export class WordModal extends Modal {
-    constructor(app: App, original: string, onSubmit: (result: string) => void) {
-        super(app);
-        this.setTitle('Edit Lexeme');
-
-        let word = original;
-        new Setting(this.contentEl)
-            .setName('Word')
-            .addText((text) => {
-                text.onChange((value) => {
-                    word = value;
-                });
-                text.setValue(original);
-            });
-
-        new Setting(this.contentEl)
-            .addButton((btn) =>
-                btn
-                    .setButtonText('Edit')
-                    .setCta()
-                    .onClick(() => {
-                        this.close();
-                        onSubmit(word);
-                    }));
-    }
-}
 export class EnglishModal extends Modal {
     constructor(app: App, original: string, onSubmit: (result: string) => void) {
         super(app);
@@ -334,6 +307,10 @@ export class LexiconView extends TextFileView {
     tableEl: HTMLElement;
     searchQuery = "";
     searchColumn = "";
+
+    getIcon(): IconName {
+        return 'book-a';
+    }
 
     getViewData() {
         return JSON.stringify(this.jsonData, null, 4);
