@@ -82,13 +82,14 @@
 .inflection {
     background-color: #ece7ff;
     border-radius: 12px;
-    
 }
 
 .inflection-card {
     background-color: #e0d9ff;
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
+    display: inline-flex;
+    width: 100%;
 }
 .inflection-card.is-collapsed {
     border-radius: 12px;
@@ -96,14 +97,18 @@
 .inflection-contents {
     padding: 4px;
 }
-.inflection-label {
-    display: inline-block;
+.inflection-label-container {
+    display: flex;
     padding-left: 4px;
+    flex:1;
+    align-items: center;
 }
 
 .inflection-fold {
-    display: inline-block;
-    transform: translate(0, 15%);
+    display: flex;
+    vertical-align: middle;
+    align-items: center;
+    align-self: center;
 }
 
 .inflection-fold.is-collapsed > .svg-icon {

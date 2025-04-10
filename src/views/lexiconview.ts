@@ -205,42 +205,43 @@ export class LexiconView extends TextFileView {
         this.requestSave();
     }
     // Code that is run by inflectionButton of empty inflection entries. Full entry behavior is defined in addInflectionContents().
-    inflectionButtonEmpty(result: string, inflection_card: HTMLDivElement, inflection_contents: HTMLDivElement, inflection_label: HTMLDivElement, inflectionButton: HTMLButtonElement, lexicon_entry: { inflection_table: { top_headers: string[], left_headers: string[] }, inflections: string[]; }) {
+    inflectionButtonEmpty(result: string, inflection_label_container: HTMLDivElement, inflection_card: HTMLDivElement, inflection_contents: HTMLDivElement, inflection_label: HTMLDivElement, inflectionButton: HTMLButtonElement, lexicon_entry: { inflection_table: { top_headers: string[], left_headers: string[] }, inflections: string[]; }) {
         this.inflectionButtonCommon(result, lexicon_entry);
         if (
             lexicon_entry.inflection_table.top_headers.length == 1 && lexicon_entry.inflection_table.top_headers[0] == "" ||
             lexicon_entry.inflection_table.left_headers.length == 1 && lexicon_entry.inflection_table.left_headers[0] == "" ||
             lexicon_entry.inflections.length == 1 && lexicon_entry.inflections[0] == ""
         ) {
-            this.deleteInflectionContents(inflection_card, inflection_contents, inflection_label, inflectionButton, lexicon_entry);
+            this.deleteInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, lexicon_entry);
         }
         else {
-            this.addInflectionContents(inflection_card, inflection_contents, inflection_label, inflectionButton, lexicon_entry);
+            this.addInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, lexicon_entry);
         }
     }
 
     // Remove the contents of an inflection that is now empty.
-    deleteInflectionContents (inflection_card: HTMLDivElement, inflection_contents: HTMLDivElement, inflection_label: HTMLDivElement, inflectionButton: HTMLButtonElement, lexicon_entry: { inflection_table: { top_headers: string[], left_headers: string[] }, inflections: string[]; }) {
+    deleteInflectionContents (inflection_label_container: HTMLDivElement, inflection_card: HTMLDivElement, inflection_contents: HTMLDivElement, inflection_label: HTMLDivElement, inflectionButton: HTMLButtonElement, lexicon_entry: { inflection_table: { top_headers: string[], left_headers: string[] }, inflections: string[]; }) {
         inflectionButton.onclick = (ev) => {
             new InflectionModal(this.app, { top_headers: [], left_headers: [] }, [], (result) => {
-                this.inflectionButtonEmpty(result, inflection_card, inflection_contents, inflection_label, inflectionButton, lexicon_entry);
+                this.inflectionButtonEmpty(result, inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, lexicon_entry);
             }).open();
         };
 
-        inflection_card.removeChild(inflection_card.children[2]);
+        // Remove the dropdown arrow
+        inflection_card.children[1].removeChild(inflection_card.children[1].children[1]);
 
         inflection_contents.removeChild(inflection_contents.firstChild!);
         inflection_contents.setAttr("style", "display: none;");
 
         inflection_card.setAttr("class", "inflection-card is-collapsed");
-        inflection_card.onclick = (ev) => {
+        inflection_label_container.onclick = (ev) => {
         }
 
         inflection_label.setText("No Inflection");
     }
 
     // Add the contents of an inflection.
-    addInflectionContents(inflection_card: HTMLDivElement, inflection_contents: HTMLDivElement, inflection_label: HTMLDivElement, inflectionButton: HTMLButtonElement, lexicon_entry: { inflection_table: { top_headers: string[], left_headers: string[] }, inflections: string[]; }) {
+    addInflectionContents(inflection_label_container: HTMLDivElement, inflection_card: HTMLDivElement, inflection_contents: HTMLDivElement, inflection_label: HTMLDivElement, inflectionButton: HTMLButtonElement, lexicon_entry: { inflection_table: { top_headers: string[], left_headers: string[] }, inflections: string[]; }) {
         let inflection_table = this.buildInflectionTable(lexicon_entry);
 
         inflectionButton.onclick = (ev) => {
@@ -251,7 +252,7 @@ export class LexiconView extends TextFileView {
                     (lexicon_entry.inflection_table.left_headers.length == 0) ||
                     (lexicon_entry.inflections.length == 0)
                 ) {
-                    this.deleteInflectionContents(inflection_card, inflection_contents, inflection_label, inflectionButton, lexicon_entry);
+                    this.deleteInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, lexicon_entry);
                 }
                 else {
                     inflection_contents.removeChild(inflection_contents.firstChild!);
@@ -260,12 +261,12 @@ export class LexiconView extends TextFileView {
             }).open();
         };
 
-        let fold_icon = inflection_card.createDiv({ cls: "inflection-fold is-collapsed" });
+        let fold_icon = inflection_label_container.createDiv({ cls: "inflection-fold is-collapsed" });
         setIcon(fold_icon, 'chevron-down');
 
         inflection_contents.appendChild(inflection_table);
 
-        inflection_card.onclick = (ev) => {
+        inflection_label_container.onclick = (ev) => {
             if (inflection_contents.hasAttribute("style")) {
                 inflection_contents.removeAttribute("style");
                 fold_icon.setAttr("class", "inflection-fold");
@@ -372,22 +373,25 @@ export class LexiconView extends TextFileView {
                 let inflectionButton = inflection_card
                     .createEl("button", { cls: "lexicon-button inflection-button" });
 
+                let inflection_label_container = inflection_card
+                    .createDiv({ cls: "inflection-label-container" });
+
                 inflectionButton.onclick = (ev) => {
                     new InflectionModal(this.app, { top_headers: [], left_headers: [] }, [], (result) => {
-                        this.inflectionButtonEmpty(result, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
+                        this.inflectionButtonEmpty(result, inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
                     }).open();
                 };
 
                 setIcon(inflectionButton, 'table');
 
-                let inflection_label = inflection_card
+                let inflection_label = inflection_label_container
                     .createDiv({ cls: "inflection-label" });
                 
                 // This will get overwritten by the line below this if it needs to be.
                 inflection_label.setText("No Inflection");
 
                 if (Array.isArray(entry.inflections) && entry.inflections.length > 0) {
-                    this.addInflectionContents(inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
+                    this.addInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
                 }
 
                 const deleteButton = rowEl
