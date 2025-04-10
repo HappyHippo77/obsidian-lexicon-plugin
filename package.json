@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-lexicon-plugin",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"description": "Display and edit a JSON lexicon.",
 	"main": "main.js",
 	"scripts": {
