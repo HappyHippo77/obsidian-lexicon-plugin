@@ -32,7 +32,6 @@ export class InflectionModal extends Modal {
                     .setButtonText('Edit')
                     .setCta()
                     .onClick(() => {
-                        console.log(top_headers, left_headers, inflections);
                         if (top_headers[0] == "" || left_headers[0] == "" || inflections[0] == "") {
                             top_headers = [];
                             left_headers = [];
@@ -81,14 +80,12 @@ export class InflectionModal extends Modal {
             const delete_column_button = delete_column_cell.createEl("button", { cls: "inflection-modal-button delete column" });
             setIcon(delete_column_button, 'trash-2');
             delete_column_button.onClickEvent(ev => {
-                console.log(top_headers, left_headers, inflections);
                 if (top_headers.length === 1) {
                     top_headers.length = 0;
                     inflections.length = 0;
                     for (i = 0; i < left_headers.length; i++) {
                         inflections.push("");
                     }
-                    console.log(top_headers, left_headers, inflections);
                 } else {
                     for (let i = inflections.length - 1; i >= 0; i--) {
                         if (i % top_headers.length === top_headers.length - 1) {
@@ -96,7 +93,6 @@ export class InflectionModal extends Modal {
                         }
                     }
                     top_headers.pop();
-                    console.log(top_headers, left_headers, inflections);
                 }
                 this.render_table(top_headers, left_headers, inflections);
             });
