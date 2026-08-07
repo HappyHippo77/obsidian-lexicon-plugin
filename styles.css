@@ -71,7 +71,7 @@
 }
 
 .notes-button {
-    color: var(--inline-code-normal) !important;
+    color: var(--color-red) !important;
     font-family: 'Courier New', Courier, monospace;
 }
 .notes-button.empty {
