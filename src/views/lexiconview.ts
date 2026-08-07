@@ -1,18 +1,18 @@
 import { TextFileView, MarkdownRenderer, setIcon, IconName, App, Modal, Setting, removeIcon } from "obsidian";
-import { WordModal } from "src/modals/wordmodal";
-import { EnglishModal } from "src/modals/englishmodal";
-import { PartOfSpeechModal } from "src/modals/partofspeechmodal";
-import { EtymologyModal } from "src/modals/etymologymodal";
-import { NotesModal } from "src/modals/notesmodal";
-import { InflectionModal } from "src/modals/inflectionmodal";
-import { DeleteModal } from "src/modals/deletemodal";
-import { AddModal } from "src/modals/addmodal";
+import { WordModal } from "../modals/wordmodal";
+import { EnglishModal } from "../modals/englishmodal";
+import { PartOfSpeechModal } from "../modals/partofspeechmodal";
+import { EtymologyModal } from "../modals/etymologymodal";
+import { NotesModal } from "../modals/notesmodal";
+import { InflectionModal } from "../modals/inflectionmodal";
+import { DeleteModal } from "../modals/deletemodal";
+import { AddModal } from "../modals/addmodal";
 
 export const VIEW_TYPE_LEXICON = "lexicon-view";
 
 export class LexiconView extends TextFileView {
     jsonData: any;
-    tableEl: HTMLElement;
+    tableEl!: HTMLElement;
     searchQuery = "";
     searchColumn = "";
     selectedSearch = "";
@@ -175,17 +175,17 @@ export class LexiconView extends TextFileView {
         const inflection_table = this.contentEl.createEl("table", { cls: "inflection-table" });
         const inflection_table_body = inflection_table.createEl("tbody");
         const header_row = inflection_table_body.createEl("tr");
-        header_row.createEl("td");
+        header_row.createEl("th");
         for (const header of lexicon_entry.inflection_table.top_headers) {
             header_row
-                .createEl("td")
+                .createEl("th")
                 .createEl("b", { text: header });
         }
 
         for (let i = 0; i < lexicon_entry.inflection_table.left_headers.length; i++) {
             const row = inflection_table_body.createEl("tr");
             row
-                .createEl("td")
+                .createEl("th")
                 .createEl("b", { text: lexicon_entry.inflection_table.left_headers[i] });
 
             for (let j = 0; j < lexicon_entry.inflection_table.top_headers.length; j++) {
@@ -198,40 +198,18 @@ export class LexiconView extends TextFileView {
         return inflection_table;
     }
 
-    // Code that is run by the inflectionButton of both empty and full inflection entries.
-    inflectionButtonCommon(result: string, lexicon_entry: { inflection_table: { top_headers: string[], left_headers: string[] }, inflections: string[]; }) {
-        lexicon_entry.inflection_table = JSON.parse(result)[0];
-        lexicon_entry.inflections = JSON.parse(result)[1];
-        this.requestSave();
-    }
-    // Code that is run by inflectionButton of empty inflection entries. Full entry behavior is defined in addInflectionContents().
-    inflectionButtonEmpty(result: string, inflection_label_container: HTMLDivElement, inflection_card: HTMLDivElement, inflection_contents: HTMLDivElement, inflection_label: HTMLDivElement, inflectionButton: HTMLButtonElement, lexicon_entry: { inflection_table: { top_headers: string[], left_headers: string[] }, inflections: string[]; }) {
-        this.inflectionButtonCommon(result, lexicon_entry);
-        if (
-            lexicon_entry.inflection_table.top_headers.length == 1 && lexicon_entry.inflection_table.top_headers[0] == "" ||
-            lexicon_entry.inflection_table.left_headers.length == 1 && lexicon_entry.inflection_table.left_headers[0] == "" ||
-            lexicon_entry.inflections.length == 1 && lexicon_entry.inflections[0] == ""
-        ) {
-            this.deleteInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, lexicon_entry);
-        }
-        else {
-            this.addInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, lexicon_entry);
-        }
-    }
-
     // Remove the contents of an inflection that is now empty.
     deleteInflectionContents (inflection_label_container: HTMLDivElement, inflection_card: HTMLDivElement, inflection_contents: HTMLDivElement, inflection_label: HTMLDivElement, inflectionButton: HTMLButtonElement, lexicon_entry: { inflection_table: { top_headers: string[], left_headers: string[] }, inflections: string[]; }) {
-        inflectionButton.onclick = (ev) => {
-            new InflectionModal(this.app, { top_headers: [], left_headers: [] }, [], (result) => {
-                this.inflectionButtonEmpty(result, inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, lexicon_entry);
-            }).open();
-        };
+        if (inflection_card.children[1].children[1] != null) {
+            // Remove the dropdown arrow
+            inflection_card.children[1].removeChild(inflection_card.children[1].children[1]);
+        }
 
-        // Remove the dropdown arrow
-        inflection_card.children[1].removeChild(inflection_card.children[1].children[1]);
+        if (inflection_contents.firstChild != null) {
+            inflection_contents.removeChild(inflection_contents.firstChild!);
+        }
 
-        inflection_contents.removeChild(inflection_contents.firstChild!);
-        inflection_contents.setAttr("style", "display: none;");
+        inflection_contents.addClass("hidden");
 
         inflection_card.setAttr("class", "inflection-card is-collapsed");
         inflection_label_container.onclick = (ev) => {
@@ -244,35 +222,18 @@ export class LexiconView extends TextFileView {
     addInflectionContents(inflection_label_container: HTMLDivElement, inflection_card: HTMLDivElement, inflection_contents: HTMLDivElement, inflection_label: HTMLDivElement, inflectionButton: HTMLButtonElement, lexicon_entry: { inflection_table: { top_headers: string[], left_headers: string[] }, inflections: string[]; }) {
         let inflection_table = this.buildInflectionTable(lexicon_entry);
 
-        inflectionButton.onclick = (ev) => {
-            new InflectionModal(this.app, lexicon_entry.inflection_table, lexicon_entry.inflections, (result) => {
-                this.inflectionButtonCommon(result, lexicon_entry);
-                if (
-                    (lexicon_entry.inflection_table.top_headers.length == 0) ||
-                    (lexicon_entry.inflection_table.left_headers.length == 0) ||
-                    (lexicon_entry.inflections.length == 0)
-                ) {
-                    this.deleteInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, lexicon_entry);
-                }
-                else {
-                    inflection_contents.removeChild(inflection_contents.firstChild!);
-                    inflection_contents.appendChild(this.buildInflectionTable(lexicon_entry));
-                }
-            }).open();
-        };
-
         let fold_icon = inflection_label_container.createDiv({ cls: "inflection-fold is-collapsed" });
         setIcon(fold_icon, 'chevron-down');
 
         inflection_contents.appendChild(inflection_table);
 
         inflection_label_container.onclick = (ev) => {
-            if (inflection_contents.hasAttribute("style")) {
-                inflection_contents.removeAttribute("style");
+            if (inflection_contents.hasClass("hidden")) {
+                inflection_contents.removeClass("hidden");
                 fold_icon.setAttr("class", "inflection-fold");
                 inflection_card.setAttr("class", "inflection-card");
             } else {
-                inflection_contents.setAttr("style", "display: none;");
+                inflection_contents.addClass("hidden");
                 fold_icon.setAttr("class", "inflection-fold is-collapsed");
                 inflection_card.setAttr("class", "inflection-card is-collapsed");
             }
@@ -368,7 +329,7 @@ export class LexiconView extends TextFileView {
                 let inflection_contents = inflection_div
                     .createDiv({ cls: "inflection-contents" });
 
-                inflection_contents.setAttr("style", "display: none;");
+                inflection_contents.addClass("hidden");
 
                 let inflectionButton = inflection_card
                     .createEl("button", { cls: "lexicon-button inflection-button" });
@@ -377,8 +338,27 @@ export class LexiconView extends TextFileView {
                     .createDiv({ cls: "inflection-label-container" });
 
                 inflectionButton.onclick = (ev) => {
-                    new InflectionModal(this.app, { top_headers: [], left_headers: [] }, [], (result) => {
-                        this.inflectionButtonEmpty(result, inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
+                    new InflectionModal(this.app, entry.inflection_table, entry.inflections, (result) => {
+                        entry.inflection_table = JSON.parse(result)[0];
+                        entry.inflections = JSON.parse(result)[1];
+                        this.requestSave();
+                        if (
+                            (entry.inflection_table.top_headers.length == 0) ||
+                            (entry.inflection_table.left_headers.length == 0) ||
+                            (entry.inflections.length == 0)
+                        ) {
+                            this.deleteInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
+                        }
+                        else {
+                            if (inflection_contents.hasChildNodes()) {
+                                inflection_contents.removeChild(inflection_contents.firstChild!);
+                                inflection_contents.appendChild(this.buildInflectionTable(entry));
+                            } else {
+                                this.deleteInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
+                                this.addInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
+                            }
+                            
+                        }
                     }).open();
                 };
 

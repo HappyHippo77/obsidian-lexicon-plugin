@@ -1,6 +1,5 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, WorkspaceLeaf } from 'obsidian';
 import { LexiconView, VIEW_TYPE_LEXICON } from "./views/lexiconview"
-import * as path from 'path';
 
 
 interface LexiconSettings {
@@ -12,7 +11,7 @@ const DEFAULT_SETTINGS: LexiconSettings = {
 }
 
 export default class Lexicon extends Plugin {
-	settings: LexiconSettings;
+	settings!: LexiconSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -49,7 +48,9 @@ export default class Lexicon extends Plugin {
 								const leaf = this.app.workspace.getLeaf(true);
 								await leaf.openFile(File);
 							} catch (error) {
-								console.log(error.toString());
+								if (error instanceof Error) {
+									console.error(error.message);
+								}
 							}
 						}
 					});

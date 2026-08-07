@@ -54,38 +54,44 @@
 
 
 .english-button {
-    color: steelblue !important;
+    color: var(--italic-color) !important;
     font-style: italic;
 }
 .etymology-button.empty {
-    color: gray !important;
+    color: var(--text-faint) !important;
 }
 
 .etymology-language {
+    color: var(--bold-color);
     font-weight: bold;
 }
 .etymology-english {
-    color: steelblue !important;
+    color: var(--italic-color) !important;
     font-style: italic;
 }
 
 .notes-button {
-    color: crimson !important;
+    color: var(--inline-code-normal) !important;
     font-family: 'Courier New', Courier, monospace;
 }
 .notes-button.empty {
-    color: gray !important;
+    color: var(--text-faint) !important;
 }
 
 
 
 .inflection {
-    background-color: #ece7ff;
+    background-color: var(--color-accent-1);
     border-radius: 12px;
 }
 
+.inflection-button .svg-icon {
+    stroke: var(--text-on-accent);
+}
+
 .inflection-card {
-    background-color: #e0d9ff;
+    background-color: var(--color-accent);
+    color: var(--text-on-accent);
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
     display: inline-flex;
@@ -95,7 +101,10 @@
     border-radius: 12px;
 }
 .inflection-contents {
-    padding: 4px;
+    padding: 12px;
+}
+.inflection-contents.hidden {
+    display: none;
 }
 .inflection-label-container {
     display: flex;
@@ -116,11 +125,19 @@
 }
 
 .inflection-table {
-    background-color: var(--background-primary);
     text-align: center;
     border-collapse: collapse;
+    color: var(--text-normal);
+}
+.inflection-table b {
+    color: var(--text-on-accent);
+}
+.inflection-table th {
+    padding-left: 6px;
+    padding-right: 6px;
 }
 .inflection-table td {
+    background-color: var(--background-primary);
     border: 1px solid var(--background-modifier-border);
     padding: 4px 8px;
 }
@@ -128,9 +145,42 @@
     background-color: transparent;
 }
 
-/* .inflection-fold > .svg-icon {
-    transition: transform 100ms ease-in-out;
-} */
+
+
+.inflection-modal-table {
+    height: 100%;
+}
+.inflection-modal-header input {
+    font-weight: bold;
+}
+.inflection-modal-table .inflection-modal-button {
+    aspect-ratio: 1 / 1;
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0%;
+}
+.inflection-modal-table .delete .svg-icon {
+    height: 1.25em;
+    stroke: darkred;
+}
+.inflection-modal-table .inflection-modal-button:hover {
+    box-shadow: var(--input-shadow);
+}
+.inflection-modal-table .inflection-modal-header input {
+    background-color: var(--background-secondary);
+}
+.inflection-modal-table .setting-item-control {
+    width: 100%;
+}
+.inflection-modal-table .setting-item-info {
+    display: none;
+}
+.inflection-modal-table input {
+    field-sizing: content;
+    width: 100%;
+    text-align: center;
+}
 
 .lexicon-search {
     background: none;
