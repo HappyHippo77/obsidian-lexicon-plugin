@@ -337,6 +337,19 @@ export class LexiconView extends TextFileView {
                 let inflection_label_container = inflection_card
                     .createDiv({ cls: "inflection-label-container" });
 
+                if (
+                        !("inflection_table" in entry) ||
+                        !("top_headers" in entry.inflection_table) ||
+                        !(entry.inflection_table.top_headers instanceof Array) ||
+                        !('left_headers' in entry.inflection_table) ||
+                        !(entry.inflection_table.left_headers instanceof Array)
+                    ) {
+                        entry.inflection_table = {top_headers: [], left_headers: []};
+                    }
+                if (!("inflections" in entry && entry.inflections instanceof Array)) {
+                    entry.inflections = [];
+                }
+
                 inflectionButton.onclick = (ev) => {
                     new InflectionModal(this.app, entry.inflection_table, entry.inflections, (result) => {
                         entry.inflection_table = JSON.parse(result)[0];

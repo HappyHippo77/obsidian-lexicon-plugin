@@ -14,7 +14,7 @@
 }
 
 .lexicon-table tr:hover:not(:first-child):not(:nth-child(2)) {
-    background-color: var(--color-base-05);
+    background-color: var(--color-base-10);
 }
 
 .lexicon-table tr td:nth-child(6), .lexicon-table tr th:nth-child(6) {
@@ -38,8 +38,8 @@
     box-shadow: none;
 }
 
-.lexicon-button:hover {
-    background-color: transparent;
+.inflection-button:hover {
+    background-color: var(--color-accent-1)
 }
 
 .lexicon-button {
@@ -48,7 +48,11 @@
     align-self: center;
     padding: 4px;
     aspect-ratio: 1;
-    border-radius: 12px;
+    border-radius: var(--radius-l);
+    font-weight: var(--font-weight);
+}
+.lexicon-button.delete-button .svg-icon {
+    stroke: var(--color-red);
 }
 
 
@@ -82,7 +86,7 @@
 
 .inflection {
     background-color: var(--color-accent-1);
-    border-radius: 12px;
+    border-radius: var(--radius-l);
 }
 
 .inflection-button .svg-icon {
@@ -92,13 +96,13 @@
 .inflection-card {
     background-color: var(--color-accent);
     color: var(--text-on-accent);
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+    border-top-left-radius: var(--radius-l);
+    border-top-right-radius: var(--radius-l);
     display: inline-flex;
     width: 100%;
 }
 .inflection-card.is-collapsed {
-    border-radius: 12px;
+    border-radius: var(--radius-l);
 }
 .inflection-contents {
     padding: 12px;
@@ -126,7 +130,8 @@
 
 .inflection-table {
     text-align: center;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     color: var(--text-normal);
 }
 .inflection-table b {
@@ -141,14 +146,38 @@
     border: 1px solid var(--background-modifier-border);
     padding: 4px 8px;
 }
+.inflection-table tr:not(:last-child) td {
+    border-bottom: none;
+}
+.inflection-table tr td:not(:last-child) {
+    border-right: none;
+}
+.inflection-table tr:nth-child(2) td:nth-child(2) {
+    border-top-left-radius: var(--radius-l);
+}
+.inflection-table tr:nth-child(2) td:last-child {
+    border-top-right-radius: var(--radius-l);
+}
+.inflection-table tr:last-child td:nth-child(2) {
+    border-bottom-left-radius: var(--radius-l);
+}
+.inflection-table tr:last-child td:last-child {
+    border-bottom-right-radius: var(--radius-l);
+}
 .inflection-table tr:hover:not(:first-child):not(:nth-child(2)) {
     background-color: transparent;
 }
 
 
-
+.inflection-modal-container {
+    display: flex;
+    justify-content: center;
+}
 .inflection-modal-table {
     height: 100%;
+}
+.inflection-modal-table td {
+    text-align: center;
 }
 .inflection-modal-header input {
     font-weight: bold;
@@ -162,7 +191,7 @@
 }
 .inflection-modal-table .delete .svg-icon {
     height: 1.25em;
-    stroke: darkred;
+    stroke: var(--color-red);
 }
 .inflection-modal-table .inflection-modal-button:hover {
     box-shadow: var(--input-shadow);
@@ -180,13 +209,14 @@
     field-sizing: content;
     width: 100%;
     text-align: center;
+    background-color: var(--background-primary);
 }
 
 .lexicon-search {
     background: none;
     border: none;
     box-shadow: var(--input-shadow);
-    border-radius: 12px;
+    border-radius: var(--radius-l);
     padding: 4px 8px;
     width: 100%;
     min-width: 60px;
