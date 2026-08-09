@@ -104,14 +104,16 @@ export class InflectionModal extends Modal {
                     this.inflections.length = 0;
 
                     for (const paradigm of Object.entries(this.paradigms)) {
-                        for (const entry of paradigm[1].table.top_headers) {
-                            this.top_headers.push(entry);
-                        }
-                        for (const entry of paradigm[1].table.left_headers) {
-                            this.left_headers.push(entry);
-                        }
-                        for (const entry of paradigm[1].inflections) {
-                            this.inflections.push(entry);
+                        if (paradigm[0] == paradigm_selector.getValue()) {
+                            for (const entry of paradigm[1].table.top_headers) {
+                                this.top_headers.push(entry);
+                            }
+                            for (const entry of paradigm[1].table.left_headers) {
+                                this.left_headers.push(entry);
+                            }
+                            for (const entry of paradigm[1].inflections) {
+                                this.inflections.push(entry);
+                            }
                         }
                     }
 
