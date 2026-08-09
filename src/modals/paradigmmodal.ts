@@ -1,14 +1,38 @@
 import { App, Modal, setIcon, Setting, TextComponent } from "obsidian";
-import { InflectionTable } from "../views/lexiconview";
+import { InflectionParadigm, InflectionTable } from "../views/lexiconview";
 
 
-export class InflectionModal extends Modal {
+export class ParadigmModal extends Modal {
     table_container: HTMLDivElement;
-    constructor(app: App, original_table: InflectionTable, original_inflections: string[], onSubmit: (inflection_table: InflectionTable, inflections: string[]) => void) {
+    valid: boolean = false;
+    add_button_setting: Setting;
+    name: string;
+    paradigms: {[key: string]: InflectionParadigm};
+    edit: boolean;
+    constructor(app: App, edit: boolean, original_name: string, original_table: InflectionTable, original_inflections: string[], paradigms: {[key: string]: InflectionParadigm}, onSubmit: (name: string, inflection_table: InflectionTable, inflections: string[]) => void) {
         super(app);
-        this.setTitle("Edit Lexeme");
+        this.setTitle("Add Paradigm");
 
         this.modalEl.addClass("inflection-modal");
+
+        this.name = original_name;
+
+        if (!edit) {
+            new Setting(this.contentEl)
+            .setName("Name")
+            .setDesc("The name of the paradigm")
+            .addText((text) => {
+                text
+                    .setValue(original_name)
+                    .onChange((value) => {
+                        this.name = value;
+                        this.check_valid(top_headers, left_headers, inflections);
+                    });
+            });
+        }
+
+        this.paradigms = paradigms;
+        this.edit = edit;
 
         let top_headers: string[] = [];
         for (const entry of original_table.top_headers) {
@@ -23,17 +47,17 @@ export class InflectionModal extends Modal {
             inflections.push(entry);
         }
 
-        let label = this.contentEl.createDiv( { cls: "inflection-modal-label" } );
-        label.setText("Inflection");
+        let label = this.contentEl.createDiv( { cls: "paradigm-modal-label" } );
+        label.setText("%word% will be replaced by the entry when the paradigm is used.");
 
         this.table_container = this.contentEl.createDiv({ cls: "inflection-modal-container" })
 
         this.render_table(top_headers, left_headers, inflections);
 
-        new Setting(this.contentEl)
+        this.add_button_setting = new Setting(this.contentEl)
             .addButton((btn) =>
                 btn
-                    .setButtonText('Edit')
+                    .setButtonText(edit ? "Edit" : "Add")
                     .setCta()
                     .onClick(() => {
                         if (top_headers[0] == "" || left_headers[0] == "" || inflections[0] == "") {
@@ -42,9 +66,54 @@ export class InflectionModal extends Modal {
                             inflections = [];
                         }
 
-                        this.close();
-                        onSubmit({top_headers, left_headers}, inflections);
+                        if (this.valid) {
+                            this.close();
+                            onSubmit(this.name, {top_headers, left_headers}, inflections);
+                        }
                     }));
+        this.check_valid(top_headers, left_headers, inflections);
+    }
+
+    check_valid(top_headers: string[], left_headers: string[], inflections: string[]) {
+        this.valid = true;
+        this.add_button_setting.settingEl.removeClass("invalid");
+        this.add_button_setting.setName("");
+        for (const header of top_headers) {
+            if (!header) {
+                this.valid = false;
+                this.add_button_setting.setName("All cells must be filled");
+                this.add_button_setting.settingEl.addClass("invalid");
+            }
+        }
+        for (const header of left_headers) {
+            if (!header) {
+                this.valid = false;
+                this.add_button_setting.setName("All cells must be filled");
+                this.add_button_setting.settingEl.addClass("invalid");
+            }
+        }
+        for (const inflection of inflections) {
+            if (!inflection) {
+                this.valid = false;
+                this.add_button_setting.setName("All cells must be filled");
+                this.add_button_setting.settingEl.addClass("invalid");
+            }
+        }
+        if (this.name) {
+            if (!this.edit) {
+                for (const paradigm of Object.entries(this.paradigms)) {
+                    if (this.name == paradigm[0]) {
+                        this.valid = false;
+                        this.add_button_setting.setName("Name must be unique");
+                        this.add_button_setting.settingEl.addClass("invalid");
+                    }
+                }
+            }
+        } else {
+            this.valid = false;
+            this.add_button_setting.setName("Invalid name");
+            this.add_button_setting.settingEl.addClass("invalid");
+        }
     }
 
     render_table(top_headers: string[], left_headers: string[], inflections: string[]) {
@@ -95,6 +164,7 @@ export class InflectionModal extends Modal {
                     top_headers.pop();
                 }
                 this.render_table(top_headers, left_headers, inflections);
+                this.check_valid(top_headers, left_headers, inflections);
             });
 
             const header = top_headers[i];
@@ -107,6 +177,7 @@ export class InflectionModal extends Modal {
 
                     text.onChange((value) => {
                         top_headers[i] = value;
+                        this.check_valid(top_headers, left_headers, inflections);
                     });
                 })
                 .setClass("inflection-modal-header");;
@@ -124,6 +195,7 @@ export class InflectionModal extends Modal {
             }
             inflections.push("");
             this.render_table(top_headers, left_headers, inflections);
+            this.check_valid(top_headers, left_headers, inflections);
         });
 
         for (let inflection_index = 0; inflection_index < inflections.length; inflection_index++) {
@@ -141,6 +213,7 @@ export class InflectionModal extends Modal {
                     left_headers.pop();
                     inflections.splice(0 - top_headers.length);
                     this.render_table(top_headers, left_headers, inflections);
+                    this.check_valid(top_headers, left_headers, inflections);
                 });
 
                 const header = left_headers[left_header_index];
@@ -151,6 +224,7 @@ export class InflectionModal extends Modal {
 
                         text.onChange((value) => {
                             left_headers[left_header_index] = value;
+                            this.check_valid(top_headers, left_headers, inflections);
                         });
                     })
                     .setClass("inflection-modal-header");
@@ -163,6 +237,7 @@ export class InflectionModal extends Modal {
 
                         text.onChange((value) => {
                             inflections[inflection_index] = value;
+                            this.check_valid(top_headers, left_headers, inflections);
                         });
                     });
         }
@@ -178,6 +253,7 @@ export class InflectionModal extends Modal {
                 inflections.push("");
             }
             this.render_table(top_headers, left_headers, inflections);
+            this.check_valid(top_headers, left_headers, inflections);
         });
     }
 }

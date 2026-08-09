@@ -1,5 +1,5 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, WorkspaceLeaf } from 'obsidian';
-import { LexiconView, VIEW_TYPE_LEXICON } from "./views/lexiconview"
+import { Data, LexiconView, VIEW_TYPE_LEXICON } from "./views/lexiconview"
 
 
 interface LexiconSettings {
@@ -43,8 +43,13 @@ export default class Lexicon extends Plugin {
 								const fileExists = await adapter.exists(filePath);
 								if (fileExists)
 									new Notice(`${filePath} already exists`);
+
+								let data: Data = {
+									inflection_paradigms: {},
+									entries: []
+								};
 					
-								const File = await vault.create(filePath, '[]');
+								const File = await vault.create(filePath, JSON.stringify(data));
 								const leaf = this.app.workspace.getLeaf(true);
 								await leaf.openFile(File);
 							} catch (error) {

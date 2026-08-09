@@ -7,6 +7,7 @@ import { NotesModal } from "../modals/notesmodal";
 import { InflectionModal } from "../modals/inflectionmodal";
 import { DeleteModal } from "../modals/deletemodal";
 import { AddModal } from "../modals/addmodal";
+import { ConfigureModal } from "../modals/configuremodal";
 
 export type EtymologyDonation = {
     language: string;
@@ -20,7 +21,7 @@ export type InflectionTable = {
     left_headers: string[];
 }
 
-type LexiconEntry = {
+export type LexiconEntry = {
     word: string;
     english: string;
     part_of_speech: string;
@@ -29,6 +30,18 @@ type LexiconEntry = {
     inflection_table: InflectionTable;
     inflections: string[];
 };
+
+export type InflectionParadigm = {
+    table: InflectionTable;
+    inflections: string[];
+}
+
+export type Data = {
+    inflection_paradigms: {
+        [key: string]: InflectionParadigm;
+    }
+    entries: LexiconEntry[];
+}
 
 enum SearchColumn {
     NONE,
@@ -42,7 +55,7 @@ export const VIEW_TYPE_LEXICON = "lexicon-view";
 
 export class LexiconView extends TextFileView {
 
-    jsonData!: LexiconEntry[];
+    jsonData!: Data;
     tableEl!: HTMLElement;
     searchQuery = "";
     searchColumn: SearchColumn = SearchColumn.NONE;
@@ -65,7 +78,7 @@ export class LexiconView extends TextFileView {
     }
 
     clear() {
-        this.jsonData = [];
+        this.jsonData = {inflection_paradigms: {}, entries: []};
     }
 
     getViewType() {
@@ -74,29 +87,12 @@ export class LexiconView extends TextFileView {
 
     async onOpen() {
         this.addAction("settings", "Configure Lexicon", () => {
-            new AddModal(this.app, (word, english, part_of_speech) => {
-                this.jsonData.push(
-                    {
-                        word: word,
-                        english: english,
-                        part_of_speech: part_of_speech,
-                        etymology: [],
-                        notes: "",
-                        inflection_table: {
-                            top_headers: [],
-                            left_headers: [],
-                        },
-                        inflections: []
-                    }
-                );
-                this.requestSave();
-                this.refresh();
-            }).open();
+            new ConfigureModal(this.app, this).open();
         });
 
         this.addAction("plus", "Add Entry", () => {
             new AddModal(this.app, (word, english, part_of_speech) => {
-                this.jsonData.push(
+                this.jsonData.entries.push(
                     {
                         word: word,
                         english: english,
@@ -240,11 +236,11 @@ export class LexiconView extends TextFileView {
     }
 
     refresh() {
-        this.jsonData = this.jsonData.sort((a: { word: string }, b: { word: string }) => (a.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "") > b.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
+        this.jsonData.entries = this.jsonData.entries.sort((a: { word: string }, b: { word: string }) => (a.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "") > b.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
 
         this.contentEl.empty();
 
-        if (this.jsonData.length == 0) {
+        if (this.jsonData.entries.length == 0) {
             let container = this.contentEl.createDiv({ cls: "lexicon-empty" });
             setIcon(container, "x");
             container.createSpan("lexicon-empty-label").setText("Nothing here yet! Press the + button in the top right to add an entry.");
@@ -303,7 +299,7 @@ export class LexiconView extends TextFileView {
                 }
             };
 
-            for (const [i, entry] of this.jsonData.entries()) {
+            for (const [i, entry] of this.jsonData.entries.entries()) {
                 // Defaults to "true" if there's no search query, otherwise will be false and will go through the check below
                 let matches_search = this.searchQuery == "";
 
@@ -466,12 +462,12 @@ export class LexiconView extends TextFileView {
                         .createEl("button", { cls: "lexicon-button delete-button" });
                     setIcon(deleteButton, 'trash-2');
                     deleteButton.onclick = () => {
-                        new DeleteModal(this.app, (confirm) => {
+                        new DeleteModal(this.app, "Delete Lexeme", "Are you sure you want to delete this lexeme? This cannot be undone!", (confirm) => {
                             if (confirm) {
-                                this.jsonData.splice(this.jsonData.indexOf(entry), 1);
+                                this.jsonData.entries.splice(this.jsonData.entries.indexOf(entry), 1);
                                 this.requestSave();
                                 deleteButton.parentElement!.parentElement!.remove();
-                                if (this.jsonData.length == 0) {
+                                if (this.jsonData.entries.length == 0) {
                                     this.refresh();
                                 }
                             }

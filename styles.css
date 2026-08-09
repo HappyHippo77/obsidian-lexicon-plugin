@@ -6,6 +6,93 @@
     display: none;
 }
 
+.lexicon-configurator {
+    min-width: fit-content;
+    min-height: fit-content;
+    width: 6in;
+    height: 4in;
+    padding: 0px;
+}
+.lexicon-configurator-content-container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    max-height: 4in;
+}
+.lexicon-configurator-titlebar {
+    padding: var(--size-4-3);
+}
+.lexicon-configurator-titlebar .modal-title {
+    text-align: center;
+}
+.lexicon-configurator .modal-header {
+    display: none;
+}
+.lexicon-configurator .modal-content {
+    display: flex;
+    flex-direction: column;
+}
+.lexicon-configurator .vertical-tabs-container {
+    flex-grow: 1;
+}
+.lexicon-configurator-tabs {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    min-width: 20%;
+    padding: var(--size-4-3);
+    gap: 4px;
+    border-inline-end: var(--border-width) solid var(--divider-color);
+}
+.lexicon-configurator-content {
+    flex-grow: 1;
+    padding: var(--size-4-3);
+    overflow: auto;
+}
+.lexicon-configurator-tab:not(.clickable-icon) {
+    background-color: transparent;
+    color: var(--text-normal);
+    border-radius: var(--radius-m);
+    border: none;
+    box-shadow: none;
+}
+.lexicon-configurator-tab.active {
+    background-color: var(--color-accent);
+    color: var(--text-on-accent);
+}
+.lexicon-configurator-placeholder {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+    --icon-size: var(--icon-xl);
+}
+.lexicon-configurator-placeholder .svg-icon {
+    stroke: var(--color-accent-1);
+    stroke-width: var(--icon-xl-stroke-width);
+}
+.lexicon-configurator-placeholder-label {
+    margin: 1em;
+    color: var(--color-accent-1);
+    font-size: var(--font-small);
+}
+
+
+.paradigm-modal-label {
+    color: var(--text-muted);
+    padding-bottom: 12px;
+}
+.inflection-modal .setting-item.invalid .setting-item-name {
+    color: var(--color-red);
+}
+.inflection-modal .setting-item.invalid .setting-item-control button {
+    --color-accent: var(--color-red);
+    --color-accent-1: var(--color-red);
+}
+
+
 .lexicon-container {
     max-height: 100%;
     overflow-x: scroll;
@@ -205,6 +292,9 @@
 }
 
 
+.inflection-modal .modal-header {
+    margin-bottom: 0px;
+}
 .inflection-modal-container {
     display: flex;
     justify-content: center;
