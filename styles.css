@@ -1,7 +1,41 @@
+[data-type="lexicon-view"] .view-content {
+    padding: 0px;
+}
+
+.app-container:has(.workspace-leaf.mod-active .workspace-leaf-content[data-type="lexicon-view"]) .status-bar {
+    display: none;
+}
+
+.lexicon-container {
+    max-height: 100%;
+    overflow-x: scroll;
+    width: 100%;
+}
+
+.lexicon-empty {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    --icon-size: calc(var(--icon-xl) * 2);
+}
+
+.lexicon-empty .svg-icon {
+    stroke: var(--color-accent-1);
+    stroke-width: calc(var(--icon-xl-stroke-width) / 2);
+}
+
+.lexicon-empty-label {
+    color: var(--color-accent-1);
+    margin: 1em;
+}
+
 .lexicon-table {
-    display: block;
+    min-width: 100%;
     border-collapse: collapse;
-    overflow: auto;
+    overflow: hidden;
     white-space: nowrap;
     margin-left: 0;
     margin-right: 0;
@@ -14,7 +48,7 @@
 }
 
 .lexicon-table tr:hover:not(:first-child):not(:nth-child(2)) {
-    background-color: var(--color-base-10);
+    background-color: var(--background-modifier-hover);
 }
 
 .lexicon-table tr td:nth-child(6), .lexicon-table tr th:nth-child(6) {
@@ -26,6 +60,7 @@
   
 .lexicon-table td {
     padding: 4px 24px;
+    border-radius: 0px;
 }
 
 .lexicon-header-row {
@@ -108,7 +143,8 @@
     padding: 12px;
 }
 .inflection-contents.hidden {
-    display: none;
+    height: 0px;
+    padding: 0px;
 }
 .inflection-label-container {
     display: flex;
@@ -143,14 +179,14 @@
 }
 .inflection-table td {
     background-color: var(--background-primary);
-    border: 1px solid var(--background-modifier-border);
+    border: var(--table-border-width) solid var(--table-border-color) !important;
     padding: 4px 8px;
 }
 .inflection-table tr:not(:last-child) td {
-    border-bottom: none;
+    border-bottom: none !important;
 }
 .inflection-table tr td:not(:last-child) {
-    border-right: none;
+    border-right: none !important;
 }
 .inflection-table tr:nth-child(2) td:nth-child(2) {
     border-top-left-radius: var(--radius-l);

@@ -8,13 +8,44 @@ import { InflectionModal } from "../modals/inflectionmodal";
 import { DeleteModal } from "../modals/deletemodal";
 import { AddModal } from "../modals/addmodal";
 
+export type EtymologyDonation = {
+    language: string;
+    word: string;
+    english: string;
+    relationship: string;
+};
+
+export type InflectionTable = {
+    top_headers: string[];
+    left_headers: string[];
+}
+
+type LexiconEntry = {
+    word: string;
+    english: string;
+    part_of_speech: string;
+    notes: string;
+    etymology: EtymologyDonation[];
+    inflection_table: InflectionTable;
+    inflections: string[];
+};
+
+enum SearchColumn {
+    NONE,
+    WORD,
+    ENGLISH,
+    POS,
+    NOTES
+}
+
 export const VIEW_TYPE_LEXICON = "lexicon-view";
 
 export class LexiconView extends TextFileView {
-    jsonData: any;
+
+    jsonData!: LexiconEntry[];
     tableEl!: HTMLElement;
     searchQuery = "";
-    searchColumn = "";
+    searchColumn: SearchColumn = SearchColumn.NONE;
     selectedSearch = "";
 
     getIcon(): IconName {
@@ -26,12 +57,15 @@ export class LexiconView extends TextFileView {
     }
 
     setViewData(data: string, clear: boolean) {
+        if (clear) {
+            this.clear();
+        }
         this.jsonData = JSON.parse(data);
         this.refresh();
     }
 
     clear() {
-        this.jsonData = "";
+        this.jsonData = [];
     }
 
     getViewType() {
@@ -39,91 +73,54 @@ export class LexiconView extends TextFileView {
     }
 
     async onOpen() {
-        this.tableEl = this.contentEl.createEl("table", { cls: "lexicon-table" } );
-        const bodyEl = this.tableEl.createEl("tbody");
-
-        // Create the header rows. Add a button on the far right to add a new entry.
-        let lexicon_header_row = bodyEl
-            .createEl("tr", { cls: "lexicon-header-row" })
-        lexicon_header_row.createEl("td", { text: "Word" })
-        lexicon_header_row.createEl("td", { text: "English" })
-        lexicon_header_row.createEl("td", { text: "POS" })
-        lexicon_header_row.createEl("td", { text: "Etymology" })
-        lexicon_header_row.createEl("td", { text: "Notes" })
-        lexicon_header_row.createEl("td", { text: "Inflection" })
-
-        let addButton = lexicon_header_row.createEl("td").createEl("button", { cls: "lexicon-button add-button" } );
-        setIcon(addButton, 'plus')
-        addButton.onclick = (ev) => {
-            new AddModal(this.app, (result) => {
-                let newLexeme = JSON.parse(result);
-                if (Array.isArray(newLexeme) && newLexeme.length == 3) {
-                    this.jsonData.push(
-                        {
-                            "word": newLexeme[0],
-                            "english": newLexeme[1],
-                            "part_of_speech": newLexeme[2],
-                            "etymology": [],
-                            "notes": "",
-                            "inflection_table": {
-                                "top_headers": [],
-                                "left_headers": [],
-                            },
-                            "inflections": []
-                        }
-                    );
-                    this.requestSave();
-                    this.refresh();
-                }
+        this.addAction("settings", "Configure Lexicon", () => {
+            new AddModal(this.app, (word, english, part_of_speech) => {
+                this.jsonData.push(
+                    {
+                        word: word,
+                        english: english,
+                        part_of_speech: part_of_speech,
+                        etymology: [],
+                        notes: "",
+                        inflection_table: {
+                            top_headers: [],
+                            left_headers: [],
+                        },
+                        inflections: []
+                    }
+                );
+                this.requestSave();
+                this.refresh();
             }).open();
-        };
+        });
 
-        // Create the search row. This row contains all of the search bars for searchable columns.
-        let lexicon_search_row = bodyEl.createEl("tr", { cls: "lexicon-search-row" });
-        let wordSearchCell = lexicon_search_row.createEl("td");
-        let wordSearch = wordSearchCell.createEl("input", { cls: "lexicon-search", attr: {placeholder: "search"} } );
-        let englishSearch = lexicon_search_row.createEl("td").createEl("input", { cls: "lexicon-search", attr: {placeholder: "search"} } );
-        let posSearch = lexicon_search_row.createEl("td").createEl("input", { cls: "lexicon-search", attr: {placeholder: "search"} } );
-        lexicon_search_row.createEl("td");
-        let notesSearch = lexicon_search_row.createEl("td").createEl("input", { cls: "lexicon-search", attr: {placeholder: "search"} } );
-        lexicon_search_row.createEl("td");
-
-        // Update the search query every time a search bar is edited.
-        wordSearch.oninput = (ev) => {
-            if (ev.currentTarget instanceof HTMLInputElement) {
-                this.searchQuery = ev.currentTarget.value;
-                this.searchColumn = this.searchQuery == "" ? "" : "word";
+        this.addAction("plus", "Add Entry", () => {
+            new AddModal(this.app, (word, english, part_of_speech) => {
+                this.jsonData.push(
+                    {
+                        word: word,
+                        english: english,
+                        part_of_speech: part_of_speech,
+                        etymology: [],
+                        notes: "",
+                        inflection_table: {
+                            top_headers: [],
+                            left_headers: [],
+                        },
+                        inflections: []
+                    }
+                );
+                this.requestSave();
                 this.refresh();
-            }
-        };
-        englishSearch.oninput = (ev) => {
-            if (ev.currentTarget instanceof HTMLInputElement) {
-                this.searchQuery = ev.currentTarget.value;
-                this.searchColumn = this.searchQuery == "" ? "" : "english";
-                this.refresh();
-            }
-        };
-        posSearch.oninput = (ev) => {
-            if (ev.currentTarget instanceof HTMLInputElement) {
-                this.searchQuery = ev.currentTarget.value;
-                this.searchColumn = this.searchQuery == "" ? "" : "part_of_speech";
-                this.refresh();
-            }
-        };
-        notesSearch.oninput = (ev) => {
-            if (ev.currentTarget instanceof HTMLInputElement) {
-                this.searchQuery = ev.currentTarget.value;
-                this.searchColumn = this.searchQuery == "" ? "" : "notes";
-                this.refresh();
-            }
-        };
+            }).open();
+        });
     }
 
     async onClose() {
         this.contentEl.empty();
     }
 
-    buildEtymologySpan(etymologyButton: HTMLButtonElement, lexicon_entry: {etymology: {language: string, word: string, english: string, relationship: string}[]}) {
+    buildEtymologySpan(etymologyButton: HTMLButtonElement, lexicon_entry: { etymology: { language: string, word: string, english: string, relationship: string }[] }) {
         let etymology_span = this.contentEl
             .createSpan({ cls: "etymology-span" });
         if (Array.isArray(lexicon_entry.etymology) && lexicon_entry.etymology.length > 0) {
@@ -156,7 +153,7 @@ export class LexiconView extends TextFileView {
         return etymology_span;
     }
 
-    setNoteButtonText(notesButton: HTMLButtonElement, lexicon_entry: {notes: string}) {
+    setNoteButtonText(notesButton: HTMLButtonElement, lexicon_entry: { notes: string }) {
         if (lexicon_entry.notes == undefined) {
             lexicon_entry.notes = "";
         }
@@ -199,7 +196,7 @@ export class LexiconView extends TextFileView {
     }
 
     // Remove the contents of an inflection that is now empty.
-    deleteInflectionContents (inflection_label_container: HTMLDivElement, inflection_card: HTMLDivElement, inflection_contents: HTMLDivElement, inflection_label: HTMLDivElement, inflectionButton: HTMLButtonElement, lexicon_entry: { inflection_table: { top_headers: string[], left_headers: string[] }, inflections: string[]; }) {
+    deleteInflectionContents(inflection_label_container: HTMLDivElement, inflection_card: HTMLDivElement, inflection_contents: HTMLDivElement, inflection_label: HTMLDivElement, inflectionButton: HTMLButtonElement, lexicon_entry: { inflection_table: { top_headers: string[], left_headers: string[] }, inflections: string[]; }) {
         if (inflection_card.children[1].children[1] != null) {
             // Remove the dropdown arrow
             inflection_card.children[1].removeChild(inflection_card.children[1].children[1]);
@@ -243,164 +240,245 @@ export class LexiconView extends TextFileView {
     }
 
     refresh() {
-        this.jsonData = this.jsonData.sort((a: {word: string}, b: {word: string}) => (a.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "") > b.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
+        this.jsonData = this.jsonData.sort((a: { word: string }, b: { word: string }) => (a.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "") > b.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
 
-        let bodyEl = this.tableEl.children[0];
+        this.contentEl.empty();
 
-        // Remove old data from table.
-        while (bodyEl.childNodes.length > 2) {
-            bodyEl.removeChild(bodyEl.lastChild!);
-        }
+        if (this.jsonData.length == 0) {
+            let container = this.contentEl.createDiv({ cls: "lexicon-empty" });
+            setIcon(container, "x");
+            container.createSpan("lexicon-empty-label").setText("Nothing here yet! Press the + button in the top right to add an entry.");
+        } else {
+            let tableContainer = this.contentEl.createEl("div", { cls: "lexicon-container" })
+            this.tableEl = tableContainer.createEl("table", { cls: "lexicon-table" });
+            const bodyEl = this.tableEl.createEl("tbody");
 
-        for (const [i, entry] of this.jsonData.entries()) {
-            if (this.searchQuery == "" || entry.hasOwnProperty(this.searchColumn) && entry[this.searchColumn].includes(this.searchQuery)) {
-                const rowEl = bodyEl.createEl("tr");
+            // Create the header rows. Add a button on the far right to add a new entry.
+            let lexicon_header_row = bodyEl
+                .createEl("tr", { cls: "lexicon-header-row" })
+            lexicon_header_row.createEl("td", { text: "Word" })
+            lexicon_header_row.createEl("td", { text: "English" })
+            lexicon_header_row.createEl("td", { text: "POS" })
+            lexicon_header_row.createEl("td", { text: "Etymology" })
+            lexicon_header_row.createEl("td", { text: "Notes" })
+            lexicon_header_row.createEl("td", { text: "Inflection" })
 
-                const wordButton = rowEl
-                    .createEl("td")
-                    .createEl("button", { text: entry.word, cls: "lexicon-button word-button" });
-                wordButton.onclick = (ev) => {
-                    new WordModal(this.app, entry.word, (result) => {
-                        entry.word = result;
-                        this.requestSave();
-                        wordButton.setText(entry.word);
-                    }).open();
-                };
+            // Create the search row. This row contains all of the search bars for searchable columns.
+            let lexicon_search_row = bodyEl.createEl("tr", { cls: "lexicon-search-row" });
+            let wordSearchCell = lexicon_search_row.createEl("td");
+            let wordSearch = wordSearchCell.createEl("input", { cls: "lexicon-search", attr: { placeholder: "search" } });
+            let englishSearch = lexicon_search_row.createEl("td").createEl("input", { cls: "lexicon-search", attr: { placeholder: "search" } });
+            let posSearch = lexicon_search_row.createEl("td").createEl("input", { cls: "lexicon-search", attr: { placeholder: "search" } });
+            lexicon_search_row.createEl("td");
+            let notesSearch = lexicon_search_row.createEl("td").createEl("input", { cls: "lexicon-search", attr: { placeholder: "search" } });
+            lexicon_search_row.createEl("td");
 
-                const englishButton = rowEl
-                    .createEl("td")
-                    .createEl("button", { text: entry.english, cls: "lexicon-button english-button" });
-                englishButton.onclick = (ev) => {
-                    new EnglishModal(this.app, entry.english, (result) => {
-                        entry.english = result;
-                        this.requestSave();
-                        englishButton.setText(entry.english);
-                    }).open();
-                };
+            // Update the search query every time a search bar is edited.
+            wordSearch.oninput = (ev) => {
+                if (ev.currentTarget instanceof HTMLInputElement) {
+                    this.searchQuery = ev.currentTarget.value;
+                    this.searchColumn = this.searchQuery == "" ? SearchColumn.NONE : SearchColumn.WORD;
+                    this.refresh();
+                }
+            };
+            englishSearch.oninput = (ev) => {
+                if (ev.currentTarget instanceof HTMLInputElement) {
+                    this.searchQuery = ev.currentTarget.value;
+                    this.searchColumn = this.searchQuery == "" ? SearchColumn.NONE : SearchColumn.ENGLISH;
+                    this.refresh();
+                }
+            };
+            posSearch.oninput = (ev) => {
+                if (ev.currentTarget instanceof HTMLInputElement) {
+                    this.searchQuery = ev.currentTarget.value;
+                    this.searchColumn = this.searchQuery == "" ? SearchColumn.NONE : SearchColumn.POS;
+                    this.refresh();
+                }
+            };
+            notesSearch.oninput = (ev) => {
+                if (ev.currentTarget instanceof HTMLInputElement) {
+                    this.searchQuery = ev.currentTarget.value;
+                    this.searchColumn = this.searchQuery == "" ? SearchColumn.NONE : SearchColumn.NOTES;
+                    this.refresh();
+                }
+            };
 
-                const partOfSpeechButton = rowEl
-                    .createEl("td")
-                    .createEl("button", { text: entry.part_of_speech, cls: "lexicon-button part-of-speech-button" });
-                partOfSpeechButton.onclick = (ev) => {
-                    new PartOfSpeechModal(this.app, entry.part_of_speech, (result) => {
-                        entry.part_of_speech = result;
-                        this.requestSave();
-                        partOfSpeechButton.setText(entry.part_of_speech);
-                    }).open();
-                };
+            for (const [i, entry] of this.jsonData.entries()) {
+                // Defaults to "true" if there's no search query, otherwise will be false and will go through the check below
+                let matches_search = this.searchQuery == "";
 
-                const etymologyButton = rowEl
-                    .createEl("td")
-                    .createEl("button", { cls: "lexicon-button etymology-button" });
+                if (!matches_search) {
+                    switch (this.searchColumn) {
+                        case SearchColumn.WORD:
+                            matches_search = entry.word.contains(this.searchQuery);
+                            break;
+                        case SearchColumn.ENGLISH:
+                            matches_search = entry.english.contains(this.searchQuery);
+                            break;
+                        case SearchColumn.POS:
+                            matches_search = entry.part_of_speech.contains(this.searchQuery);
+                            break;
+                        case SearchColumn.NOTES:
+                            matches_search = entry.notes.contains(this.searchQuery);
+                            break;
+                        case SearchColumn.NONE:
+                            this.searchQuery = "";
+                            break;
+                    }
+                }
 
-                let etymology_span = this.buildEtymologySpan(etymologyButton, entry);
+                if (matches_search) {
+                    const rowEl = bodyEl.createEl("tr");
 
-                etymologyButton.appendChild(etymology_span);
-                etymologyButton.onclick = (ev) => {
-                    new EtymologyModal(this.app, entry.etymology, (result) => {
-                        entry.etymology = JSON.parse(result);
-                        this.requestSave();
-                        etymologyButton.empty();
-                        etymologyButton.appendChild(this.buildEtymologySpan(etymologyButton, entry));
-                    }).open();
-                };
+                    const wordButton = rowEl
+                        .createEl("td")
+                        .createEl("button", { text: entry.word, cls: "lexicon-button word-button" });
+                    wordButton.onclick = (ev) => {
+                        new WordModal(this.app, entry.word, (result) => {
+                            entry.word = result;
+                            this.requestSave();
+                            wordButton.setText(entry.word);
+                        }).open();
+                    };
 
-                const notesButton = rowEl
-                    .createEl("td")
-                    .createEl("button", { cls: "lexicon-button notes-button" });
-                
-                this.setNoteButtonText(notesButton, entry);
+                    const englishButton = rowEl
+                        .createEl("td")
+                        .createEl("button", { text: entry.english, cls: "lexicon-button english-button" });
+                    englishButton.onclick = (ev) => {
+                        new EnglishModal(this.app, entry.english, (result) => {
+                            entry.english = result;
+                            this.requestSave();
+                            englishButton.setText(entry.english);
+                        }).open();
+                    };
 
-                notesButton.onclick = (ev) => {
-                    new NotesModal(this.app, entry.notes, (result) => {
-                        entry.notes = result;
-                        this.requestSave();
-                        this.setNoteButtonText(notesButton, entry);
-                    }).open();
-                };
+                    const partOfSpeechButton = rowEl
+                        .createEl("td")
+                        .createEl("button", { text: entry.part_of_speech, cls: "lexicon-button part-of-speech-button" });
+                    partOfSpeechButton.onclick = (ev) => {
+                        new PartOfSpeechModal(this.app, entry.part_of_speech, (result) => {
+                            entry.part_of_speech = result;
+                            this.requestSave();
+                            partOfSpeechButton.setText(entry.part_of_speech);
+                        }).open();
+                    };
 
-                let inflection_div = rowEl
-                    .createEl("td")
-                    .createDiv({ cls: "inflection" });
+                    const etymologyButton = rowEl
+                        .createEl("td")
+                        .createEl("button", { cls: "lexicon-button etymology-button" });
 
-                let inflection_card = inflection_div
-                    .createDiv({ cls: "inflection-card is-collapsed" });
-                
-                let inflection_contents = inflection_div
-                    .createDiv({ cls: "inflection-contents" });
+                    let etymology_span = this.buildEtymologySpan(etymologyButton, entry);
 
-                inflection_contents.addClass("hidden");
+                    etymologyButton.appendChild(etymology_span);
+                    etymologyButton.onclick = (ev) => {
+                        new EtymologyModal(this.app, entry.etymology, (result) => {
+                            entry.etymology = JSON.parse(result);
+                            this.requestSave();
+                            etymologyButton.empty();
+                            etymologyButton.appendChild(this.buildEtymologySpan(etymologyButton, entry));
+                        }).open();
+                    };
 
-                let inflectionButton = inflection_card
-                    .createEl("button", { cls: "lexicon-button inflection-button" });
+                    const notesButton = rowEl
+                        .createEl("td")
+                        .createEl("button", { cls: "lexicon-button notes-button" });
 
-                let inflection_label_container = inflection_card
-                    .createDiv({ cls: "inflection-label-container" });
+                    this.setNoteButtonText(notesButton, entry);
 
-                if (
+                    notesButton.onclick = (ev) => {
+                        new NotesModal(this.app, entry.notes, (result) => {
+                            entry.notes = result;
+                            this.requestSave();
+                            this.setNoteButtonText(notesButton, entry);
+                        }).open();
+                    };
+
+                    let inflection_div = rowEl
+                        .createEl("td")
+                        .createDiv({ cls: "inflection" });
+
+                    let inflection_card = inflection_div
+                        .createDiv({ cls: "inflection-card is-collapsed" });
+
+                    let inflection_contents = inflection_div
+                        .createDiv({ cls: "inflection-contents" });
+
+                    inflection_contents.addClass("hidden");
+
+                    let inflectionButton = inflection_card
+                        .createEl("button", { cls: "lexicon-button inflection-button" });
+
+                    let inflection_label_container = inflection_card
+                        .createDiv({ cls: "inflection-label-container" });
+
+                    if (
                         !("inflection_table" in entry) ||
                         !("top_headers" in entry.inflection_table) ||
                         !(entry.inflection_table.top_headers instanceof Array) ||
                         !('left_headers' in entry.inflection_table) ||
                         !(entry.inflection_table.left_headers instanceof Array)
                     ) {
-                        entry.inflection_table = {top_headers: [], left_headers: []};
+                        entry.inflection_table = { top_headers: [], left_headers: [] };
                     }
-                if (!("inflections" in entry && entry.inflections instanceof Array)) {
-                    entry.inflections = [];
-                }
+                    if (!("inflections" in entry && entry.inflections instanceof Array)) {
+                        entry.inflections = [];
+                    }
 
-                inflectionButton.onclick = (ev) => {
-                    new InflectionModal(this.app, entry.inflection_table, entry.inflections, (result) => {
-                        entry.inflection_table = JSON.parse(result)[0];
-                        entry.inflections = JSON.parse(result)[1];
-                        this.requestSave();
-                        if (
-                            (entry.inflection_table.top_headers.length == 0) ||
-                            (entry.inflection_table.left_headers.length == 0) ||
-                            (entry.inflections.length == 0)
-                        ) {
-                            this.deleteInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
-                        }
-                        else {
-                            if (inflection_contents.hasChildNodes()) {
-                                inflection_contents.removeChild(inflection_contents.firstChild!);
-                                inflection_contents.appendChild(this.buildInflectionTable(entry));
-                            } else {
-                                this.deleteInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
-                                this.addInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
-                            }
-                            
-                        }
-                    }).open();
-                };
-
-                setIcon(inflectionButton, 'table');
-
-                let inflection_label = inflection_label_container
-                    .createDiv({ cls: "inflection-label" });
-                
-                // This will get overwritten by the line below this if it needs to be.
-                inflection_label.setText("No Inflection");
-
-                if (Array.isArray(entry.inflections) && entry.inflections.length > 0) {
-                    this.addInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
-                }
-
-                const deleteButton = rowEl
-                    .createEl("td")
-                    .createEl("button", { cls: "lexicon-button delete-button" });
-                    setIcon(deleteButton, 'trash-2');
-                    deleteButton.onclick = (ev) => {
-                    new DeleteModal(this.app, (result) => {
-                        if (result == "delete") {
-                            this.jsonData.splice(this.jsonData.indexOf(entry), 1);
+                    inflectionButton.onclick = (ev) => {
+                        new InflectionModal(this.app, entry.inflection_table, entry.inflections, (inflection_table, inflections) => {
+                            entry.inflection_table = inflection_table;
+                            entry.inflections = inflections;
                             this.requestSave();
-                            deleteButton.parentElement!.parentElement!.remove();
-                        }
-                    }).open();
-                };
+                            if (
+                                (entry.inflection_table.top_headers.length == 0) ||
+                                (entry.inflection_table.left_headers.length == 0) ||
+                                (entry.inflections.length == 0)
+                            ) {
+                                this.deleteInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
+                            }
+                            else {
+                                if (inflection_contents.hasChildNodes()) {
+                                    inflection_contents.removeChild(inflection_contents.firstChild!);
+                                    inflection_contents.appendChild(this.buildInflectionTable(entry));
+                                } else {
+                                    this.deleteInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
+                                    this.addInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
+                                }
 
+                            }
+                        }).open();
+                    };
+
+                    setIcon(inflectionButton, 'table');
+
+                    let inflection_label = inflection_label_container
+                        .createDiv({ cls: "inflection-label" });
+
+                    // This will get overwritten by the line below this if it needs to be.
+                    inflection_label.setText("No Inflection");
+
+                    if (Array.isArray(entry.inflections) && entry.inflections.length > 0) {
+                        this.addInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
+                    }
+
+                    const deleteButton = rowEl
+                        .createEl("td")
+                        .createEl("button", { cls: "lexicon-button delete-button" });
+                    setIcon(deleteButton, 'trash-2');
+                    deleteButton.onclick = () => {
+                        new DeleteModal(this.app, (confirm) => {
+                            if (confirm) {
+                                this.jsonData.splice(this.jsonData.indexOf(entry), 1);
+                                this.requestSave();
+                                deleteButton.parentElement!.parentElement!.remove();
+                                if (this.jsonData.length == 0) {
+                                    this.refresh();
+                                }
+                            }
+                        }).open();
+                    };
+
+                }
             }
         }
     }

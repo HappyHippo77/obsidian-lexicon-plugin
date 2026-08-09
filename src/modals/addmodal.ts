@@ -1,7 +1,7 @@
 import { App, Modal, Setting } from "obsidian";
 
 export class AddModal extends Modal {
-    constructor(app: App, onSubmit: (result: string) => void) {
+    constructor(app: App, onSubmit: (word: string, english: string, part_of_speech: string) => void) {
         super(app);
         this.setTitle('Add Lexeme');
 
@@ -36,14 +36,8 @@ export class AddModal extends Modal {
                     .setButtonText('Add')
                     .setCta()
                     .onClick(() => {
-                        let result = [];
-                        if (word != "" && english != "" && part_of_speech != "") {
-                            result.push(word);
-                            result.push(english);
-                            result.push(part_of_speech);
-                        }
                         this.close();
-                        onSubmit(JSON.stringify(result));
+                        onSubmit(word, english, part_of_speech);
                     }));
     }
 }

@@ -1,8 +1,10 @@
 import { App, Modal, setIcon, Setting, TextComponent } from "obsidian";
+import { InflectionTable } from "../views/lexiconview";
+
 
 export class InflectionModal extends Modal {
     table_container: HTMLDivElement;
-    constructor(app: App, original_table: { top_headers: string[], left_headers: string[] }, original_inflections: string[], onSubmit: (result: string) => void) {
+    constructor(app: App, original_table: InflectionTable, original_inflections: string[], onSubmit: (inflection_table: InflectionTable, inflections: string[]) => void) {
         super(app);
         this.setTitle('Edit Lexeme');
 
@@ -38,12 +40,8 @@ export class InflectionModal extends Modal {
                             inflections = [];
                         }
 
-                        let inflection_set = [];
-                        inflection_set.push({ "top_headers": top_headers, "left_headers": left_headers });
-                        inflection_set.push(inflections);
-
                         this.close();
-                        onSubmit(JSON.stringify(inflection_set));
+                        onSubmit({top_headers, left_headers}, inflections);
                     }));
     }
 
@@ -79,7 +77,7 @@ export class InflectionModal extends Modal {
             const delete_column_cell = delete_column_row.createEl("td");
             const delete_column_button = delete_column_cell.createEl("button", { cls: "inflection-modal-button delete column" });
             setIcon(delete_column_button, 'trash-2');
-            delete_column_button.onClickEvent(ev => {
+            delete_column_button.onClickEvent(() => {
                 if (top_headers.length === 1) {
                     top_headers.length = 0;
                     inflections.length = 0;
@@ -115,7 +113,7 @@ export class InflectionModal extends Modal {
         const new_column_button_cell = header_row.createEl("td");
         const new_column_button = new_column_button_cell.createEl("button", { cls: "inflection-modal-button new column" });
         setIcon(new_column_button, 'plus');
-        new_column_button.onClickEvent(ev => {
+        new_column_button.onClickEvent(() => {
             top_headers.push("");
             for (let inflection_index = 0; inflection_index < inflections.length; inflection_index++) {
                 if (inflection_index % top_headers.length == top_headers.length - 1) {
@@ -137,7 +135,7 @@ export class InflectionModal extends Modal {
                 const delete_row_cell = row.createEl("td");
                 const delete_row_button = delete_row_cell.createEl("button", { cls: "inflection-modal-button delete row" });
                 setIcon(delete_row_button, 'trash-2');
-                delete_row_button.onClickEvent(ev => {
+                delete_row_button.onClickEvent(() => {
                     left_headers.pop();
                     inflections.splice(0 - top_headers.length);
                     this.render_table(top_headers, left_headers, inflections);
@@ -172,7 +170,7 @@ export class InflectionModal extends Modal {
         let new_row_button_cell = new_row_button_row.createEl("td");
         let new_row_button = new_row_button_cell.createEl("button", { cls: "inflection-modal-button new row" });
         setIcon(new_row_button, 'plus');
-        new_row_button.onClickEvent(ev => {
+        new_row_button.onClickEvent(() => {
             left_headers.push("");
             for (let i = 0; i < top_headers.length; i++) {
                 inflections.push("");

@@ -1,8 +1,9 @@
 import { App, MenuSeparator, Modal, setIcon, Setting } from "obsidian";
+import { EtymologyDonation } from "../views/lexiconview";
 
 export class EtymologyModal extends Modal {
     original: {language: string, word: string, english: string, relationship: string}[];
-    donations: {language: string, word: string, english: string, relationship: string}[];
+    donations: EtymologyDonation[];
 
     populateContent(content: HTMLDivElement) {
         content.empty();

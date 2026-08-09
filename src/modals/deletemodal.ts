@@ -1,7 +1,7 @@
 import { App, Modal, Setting } from "obsidian";
 
 export class DeleteModal extends Modal {
-    constructor(app: App, onSubmit: (result: string) => void) {
+    constructor(app: App, onSubmit: (confirm: boolean) => void) {
         super(app);
         this.setTitle('Delete Lexeme');
         this.setContent('Are you sure you want to delete this lexeme? This cannot be undone!');
@@ -13,7 +13,7 @@ export class DeleteModal extends Modal {
                     .setButtonText('Cancel')
                     .onClick(() => {
                         this.close();
-                        onSubmit("cancel");
+                        onSubmit(false);
                     }));
         buttons
             .addButton((btn) =>
@@ -22,7 +22,7 @@ export class DeleteModal extends Modal {
                     .setWarning()
                     .onClick(() => {
                         this.close();
-                        onSubmit("delete");
+                        onSubmit(true);
                     }));
     }
 }
