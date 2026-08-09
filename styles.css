@@ -84,12 +84,8 @@
     color: var(--text-muted);
     padding-bottom: 12px;
 }
-.inflection-modal .setting-item.invalid .setting-item-name {
+.inflection-modal .setting-item.validated .setting-item-name {
     color: var(--color-red);
-}
-.inflection-modal .setting-item.invalid .setting-item-control button {
-    --color-accent: var(--color-red);
-    --color-accent-1: var(--color-red);
 }
 
 

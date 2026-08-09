@@ -74,7 +74,7 @@ export class ConfigureModal extends Modal {
                         .addExtraButton((btn) => {
                             btn
                                 .setIcon("pencil")
-                                .setTooltip("Add Paradigm")
+                                .setTooltip("Edit")
                                 .onClick(() => {
                                     new ParadigmModal(app, true, paradigm[0], paradigm[1].table, paradigm[1].inflections, view.jsonData.inflection_paradigms, (name, inflection_table, inflections) => {
                                         view.jsonData.inflection_paradigms[name] = { table: inflection_table, inflections: inflections };
@@ -86,10 +86,12 @@ export class ConfigureModal extends Modal {
                         .addExtraButton((btn) => {
                             btn
                                 .setIcon("trash-2")
+                                .setTooltip("Delete")
                                 .onClick(() => {
                                     new DeleteModal(app, "Delete Paradigm", "Are you sure you want to delete this paradigm?", (confirm => {
                                         if (confirm) {
                                             delete view.jsonData.inflection_paradigms[paradigm[0]];
+                                            view.requestSave();
                                             this.render_paradigms(app, view, setting_group)
                                         }
                                     })).open();

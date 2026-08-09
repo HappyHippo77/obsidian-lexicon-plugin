@@ -71,32 +71,33 @@ export class ParadigmModal extends Modal {
                             onSubmit(this.name, {top_headers, left_headers}, inflections);
                         }
                     }));
+        this.add_button_setting.settingEl.addClass("validated");
         this.check_valid(top_headers, left_headers, inflections);
     }
 
     check_valid(top_headers: string[], left_headers: string[], inflections: string[]) {
         this.valid = true;
-        this.add_button_setting.settingEl.removeClass("invalid");
         this.add_button_setting.setName("");
+        this.add_button_setting.controlEl.children[0].removeAttribute("disabled");
         for (const header of top_headers) {
             if (!header) {
                 this.valid = false;
                 this.add_button_setting.setName("All cells must be filled");
-                this.add_button_setting.settingEl.addClass("invalid");
+                this.add_button_setting.controlEl.children[0].setAttr("disabled", true);
             }
         }
         for (const header of left_headers) {
             if (!header) {
                 this.valid = false;
                 this.add_button_setting.setName("All cells must be filled");
-                this.add_button_setting.settingEl.addClass("invalid");
+                this.add_button_setting.controlEl.children[0].setAttr("disabled", true);
             }
         }
         for (const inflection of inflections) {
             if (!inflection) {
                 this.valid = false;
                 this.add_button_setting.setName("All cells must be filled");
-                this.add_button_setting.settingEl.addClass("invalid");
+                this.add_button_setting.controlEl.children[0].setAttr("disabled", true);
             }
         }
         if (this.name) {
@@ -105,14 +106,14 @@ export class ParadigmModal extends Modal {
                     if (this.name == paradigm[0]) {
                         this.valid = false;
                         this.add_button_setting.setName("Name must be unique");
-                        this.add_button_setting.settingEl.addClass("invalid");
+                        this.add_button_setting.controlEl.children[0].setAttr("disabled", true);
                     }
                 }
             }
         } else {
             this.valid = false;
             this.add_button_setting.setName("Invalid name");
-            this.add_button_setting.settingEl.addClass("invalid");
+            this.add_button_setting.controlEl.children[0].setAttr("disabled", true);
         }
     }
 
