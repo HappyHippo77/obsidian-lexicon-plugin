@@ -287,14 +287,36 @@
     background-color: transparent;
 }
 
-
 .inflection-modal .modal-header {
     margin-bottom: 0px;
 }
 .inflection-modal-container {
+    width: 100%;
+    height: 100%;
+}
+
+.inflection-modal-table-container {
     display: flex;
     justify-content: center;
 }
+.inflection-modal-empty-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom: var(--size-4-4);
+}
+.inflection-modal-empty {
+    text-align: center;
+}
+.inflection-modal-empty-paradigm {
+    display: flex;
+    justify-content: center;
+    gap: var(--size-4-3);
+}
+.inflection-modal-empty-separator {
+    margin: var(--size-4-2);
+}
+
 .inflection-modal-table {
     height: 100%;
 }
@@ -311,8 +333,7 @@
     box-shadow: none;
     padding: 0%;
 }
-.inflection-modal-table .delete .svg-icon {
-    height: 1.25em;
+.inflection-modal .delete .svg-icon {
     stroke: var(--color-red);
 }
 .inflection-modal-table .inflection-modal-button:hover {

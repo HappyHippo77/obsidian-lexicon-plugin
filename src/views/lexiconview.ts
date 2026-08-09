@@ -421,7 +421,7 @@ export class LexiconView extends TextFileView {
                     }
 
                     inflectionButton.onclick = (ev) => {
-                        new InflectionModal(this.app, entry.inflection_table, entry.inflections, (inflection_table, inflections) => {
+                        new InflectionModal(this.app, entry.word, this.jsonData.inflection_paradigms, entry.inflection_table, entry.inflections, (inflection_table, inflections) => {
                             entry.inflection_table = inflection_table;
                             entry.inflections = inflections;
                             this.requestSave();

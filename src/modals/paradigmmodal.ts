@@ -52,8 +52,6 @@ export class ParadigmModal extends Modal {
 
         this.table_container = this.contentEl.createDiv({ cls: "inflection-modal-container" })
 
-        this.render_table(top_headers, left_headers, inflections);
-
         this.add_button_setting = new Setting(this.contentEl)
             .addButton((btn) =>
                 btn
@@ -72,7 +70,8 @@ export class ParadigmModal extends Modal {
                         }
                     }));
         this.add_button_setting.settingEl.addClass("validated");
-        this.check_valid(top_headers, left_headers, inflections);
+
+        this.render_table(top_headers, left_headers, inflections);
     }
 
     check_valid(top_headers: string[], left_headers: string[], inflections: string[]) {
@@ -83,21 +82,21 @@ export class ParadigmModal extends Modal {
             if (!header) {
                 this.valid = false;
                 this.add_button_setting.setName("All cells must be filled");
-                this.add_button_setting.controlEl.children[0].setAttr("disabled", true);
+                this.add_button_setting.controlEl.children[0].setAttr("disabled", "");
             }
         }
         for (const header of left_headers) {
             if (!header) {
                 this.valid = false;
                 this.add_button_setting.setName("All cells must be filled");
-                this.add_button_setting.controlEl.children[0].setAttr("disabled", true);
+                this.add_button_setting.controlEl.children[0].setAttr("disabled", "");
             }
         }
         for (const inflection of inflections) {
             if (!inflection) {
                 this.valid = false;
                 this.add_button_setting.setName("All cells must be filled");
-                this.add_button_setting.controlEl.children[0].setAttr("disabled", true);
+                this.add_button_setting.controlEl.children[0].setAttr("disabled", "");
             }
         }
         if (this.name) {
@@ -106,14 +105,14 @@ export class ParadigmModal extends Modal {
                     if (this.name == paradigm[0]) {
                         this.valid = false;
                         this.add_button_setting.setName("Name must be unique");
-                        this.add_button_setting.controlEl.children[0].setAttr("disabled", true);
+                        this.add_button_setting.controlEl.children[0].setAttr("disabled", "");
                     }
                 }
             }
         } else {
             this.valid = false;
             this.add_button_setting.setName("Invalid name");
-            this.add_button_setting.controlEl.children[0].setAttr("disabled", true);
+            this.add_button_setting.controlEl.children[0].setAttr("disabled", "");
         }
     }
 
@@ -165,7 +164,6 @@ export class ParadigmModal extends Modal {
                     top_headers.pop();
                 }
                 this.render_table(top_headers, left_headers, inflections);
-                this.check_valid(top_headers, left_headers, inflections);
             });
 
             const header = top_headers[i];
@@ -196,7 +194,6 @@ export class ParadigmModal extends Modal {
             }
             inflections.push("");
             this.render_table(top_headers, left_headers, inflections);
-            this.check_valid(top_headers, left_headers, inflections);
         });
 
         for (let inflection_index = 0; inflection_index < inflections.length; inflection_index++) {
@@ -214,7 +211,6 @@ export class ParadigmModal extends Modal {
                     left_headers.pop();
                     inflections.splice(0 - top_headers.length);
                     this.render_table(top_headers, left_headers, inflections);
-                    this.check_valid(top_headers, left_headers, inflections);
                 });
 
                 const header = left_headers[left_header_index];
@@ -254,7 +250,8 @@ export class ParadigmModal extends Modal {
                 inflections.push("");
             }
             this.render_table(top_headers, left_headers, inflections);
-            this.check_valid(top_headers, left_headers, inflections);
         });
+
+        this.check_valid(top_headers, left_headers, inflections);
     }
 }
