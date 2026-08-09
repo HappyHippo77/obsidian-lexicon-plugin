@@ -3,7 +3,7 @@ import { InflectionParadigm, InflectionTable } from "../views/lexiconview";
 
 
 export class ParadigmModal extends Modal {
-    table_container: HTMLDivElement;
+    content_container: HTMLDivElement;
     valid: boolean = false;
     add_button_setting: Setting;
     name: string;
@@ -50,7 +50,7 @@ export class ParadigmModal extends Modal {
         let label = this.contentEl.createDiv( { cls: "paradigm-modal-label" } );
         label.setText("%word% will be replaced by the entry when the paradigm is used.");
 
-        this.table_container = this.contentEl.createDiv({ cls: "inflection-modal-table-container" });
+        this.content_container = this.contentEl.createDiv({ cls: "inflection-modal-container" })
 
         this.add_button_setting = new Setting(this.contentEl)
             .addButton((btn) =>
@@ -117,7 +117,7 @@ export class ParadigmModal extends Modal {
     }
 
     render_table(top_headers: string[], left_headers: string[], inflections: string[]) {
-        this.table_container.empty();
+        this.content_container.empty();
 
         if (top_headers.length === 0) {
             top_headers.push("");
@@ -133,7 +133,9 @@ export class ParadigmModal extends Modal {
             }
         }
 
-        const table = this.table_container.createEl("table", { cls: "inflection-modal-table" });
+        let table_container = this.content_container.createDiv({ cls: "inflection-modal-table-container" });
+
+        const table = table_container.createEl("table", { cls: "inflection-modal-table" });
         const table_body = table.createEl("tbody");
 
         const delete_column_row = table_body.createEl("tr");

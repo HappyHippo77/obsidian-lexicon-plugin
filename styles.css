@@ -295,9 +295,14 @@
     height: 100%;
 }
 
+.inflection-modal-container {
+    overflow: auto;
+}
 .inflection-modal-table-container {
     display: flex;
     justify-content: center;
+    width: max-content;
+    min-width: 100%;
 }
 .inflection-modal-empty-container {
     display: flex;
