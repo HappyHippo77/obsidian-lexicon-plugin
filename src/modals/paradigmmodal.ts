@@ -8,8 +8,7 @@ export class ParadigmModal extends Modal {
     add_button_setting: Setting;
     name: string;
     paradigms: {[key: string]: InflectionParadigm};
-    edit: boolean;
-    constructor(app: App, edit: boolean, original_name: string, original_table: InflectionTable, original_inflections: string[], paradigms: {[key: string]: InflectionParadigm}, onSubmit: (name: string, inflection_table: InflectionTable, inflections: string[]) => void) {
+    constructor(app: App, original_name: string, original_table: InflectionTable, original_inflections: string[], paradigms: {[key: string]: InflectionParadigm}, onSubmit: (name: string, inflection_table: InflectionTable, inflections: string[]) => void) {
         super(app);
         this.setTitle("Add Paradigm");
 
@@ -17,22 +16,19 @@ export class ParadigmModal extends Modal {
 
         this.name = original_name;
 
-        if (!edit) {
-            new Setting(this.contentEl)
-            .setName("Name")
-            .setDesc("The name of the paradigm")
-            .addText((text) => {
-                text
-                    .setValue(original_name)
-                    .onChange((value) => {
-                        this.name = value;
-                        this.check_valid(top_headers, left_headers, inflections);
-                    });
-            });
-        }
+        new Setting(this.contentEl)
+        .setName("Name")
+        .setDesc("The name of the paradigm")
+        .addText((text) => {
+            text
+                .setValue(original_name)
+                .onChange((value) => {
+                    this.name = value;
+                    this.check_valid(top_headers, left_headers, inflections);
+                });
+        });
 
         this.paradigms = paradigms;
-        this.edit = edit;
 
         let top_headers: string[] = [];
         for (const entry of original_table.top_headers) {
@@ -55,7 +51,7 @@ export class ParadigmModal extends Modal {
         this.add_button_setting = new Setting(this.contentEl)
             .addButton((btn) =>
                 btn
-                    .setButtonText(edit ? "Edit" : "Add")
+                    .setButtonText(original_inflections.length > 0 ? "Edit" : "Add")
                     .setCta()
                     .onClick(() => {
                         if (top_headers[0] == "" || left_headers[0] == "" || inflections[0] == "") {
@@ -100,13 +96,11 @@ export class ParadigmModal extends Modal {
             }
         }
         if (this.name) {
-            if (!this.edit) {
-                for (const paradigm of Object.entries(this.paradigms)) {
-                    if (this.name == paradigm[0]) {
-                        this.valid = false;
-                        this.add_button_setting.setName("Name must be unique");
-                        this.add_button_setting.controlEl.children[0].setAttr("disabled", "");
-                    }
+            for (const paradigm of Object.entries(this.paradigms)) {
+                if (this.name == paradigm[0]) {
+                    this.valid = false;
+                    this.add_button_setting.setName("Name must be unique");
+                    this.add_button_setting.controlEl.children[0].setAttr("disabled", "");
                 }
             }
         } else {

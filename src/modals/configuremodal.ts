@@ -34,7 +34,7 @@ export class ConfigureModal extends Modal {
                         .setIcon("plus")
                         .setTooltip("Add Paradigm")
                         .onClick(() => {
-                            new ParadigmModal(app, false, "", {top_headers: [], left_headers: []}, [], view.jsonData.inflection_paradigms, (name, inflection_table, inflections) => {
+                            new ParadigmModal(app, "", {top_headers: [], left_headers: []}, [], view.jsonData.inflection_paradigms, (name, inflection_table, inflections) => {
                                 view.jsonData.inflection_paradigms[name] = {table: inflection_table, inflections: inflections};
                                 view.requestSave();
                                 this.render_paradigms(app, view, paradigm_group);
@@ -76,7 +76,8 @@ export class ConfigureModal extends Modal {
                                 .setIcon("pencil")
                                 .setTooltip("Edit")
                                 .onClick(() => {
-                                    new ParadigmModal(app, true, paradigm[0], paradigm[1].table, paradigm[1].inflections, view.jsonData.inflection_paradigms, (name, inflection_table, inflections) => {
+                                    new ParadigmModal(app, paradigm[0], paradigm[1].table, paradigm[1].inflections, view.jsonData.inflection_paradigms, (name, inflection_table, inflections) => {
+                                        delete view.jsonData.inflection_paradigms[paradigm[0]];
                                         view.jsonData.inflection_paradigms[name] = { table: inflection_table, inflections: inflections };
                                         view.requestSave();
                                         this.render_paradigms(app, view, setting_group);
