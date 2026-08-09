@@ -92,7 +92,8 @@ export class InflectionModal extends Modal {
             empty_container.createDiv({ cls: "inflection-modal-empty inflection-modal-empty-separator" }).setText("— OR —");
             let manual_container = empty_container.createDiv({ cls: "inflection-modal-empty inflection-modal-empty-manual" });
 
-            let paradigm_selector = new DropdownComponent(paradigm_container);
+            let paradigm_selector = new DropdownComponent(paradigm_container)
+                .addOption("","");
             for (const paradigm of Object.entries(this.paradigms)) {
                 paradigm_selector.addOption(paradigm[0], paradigm[0])
             }
@@ -115,13 +116,13 @@ export class InflectionModal extends Modal {
                                 this.inflections.push(entry);
                             }
                         }
-                    }
 
-                    for (let i = 0; i < this.inflections.length; i++) {
-                        this.inflections[i] = this.inflections[i].replace(/(?<!\\)%word%/, this.word);
-                    }
+                        for (let i = 0; i < this.inflections.length; i++) {
+                            this.inflections[i] = this.inflections[i].replace(/(?<!\\)%word%/, this.word);
+                        }
 
-                    this.render_table();
+                        this.render_table();
+                        }
                 });
             
             new ButtonComponent(manual_container)
