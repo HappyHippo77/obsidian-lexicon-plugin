@@ -50,7 +50,7 @@ export class ParadigmModal extends Modal {
         let label = this.contentEl.createDiv( { cls: "paradigm-modal-label" } );
         label.setText("%word% will be replaced by the entry when the paradigm is used.");
 
-        this.table_container = this.contentEl.createDiv({ cls: "inflection-modal-container" })
+        this.table_container = this.contentEl.createDiv({ cls: "inflection-modal-table-container" });
 
         this.add_button_setting = new Setting(this.contentEl)
             .addButton((btn) =>
