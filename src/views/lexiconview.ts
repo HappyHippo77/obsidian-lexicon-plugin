@@ -36,11 +36,36 @@ export type InflectionParadigm = {
     inflections: string[];
 }
 
+export type Settings = {
+    inflections: {
+        inflection_paradigms: {
+            [key: string]: InflectionParadigm;
+        }
+    };
+    search: {
+        ignore_diacritics: boolean;
+        ignore_case: boolean;
+    };
+}
+
 export type Data = {
-    inflection_paradigms: {
-        [key: string]: InflectionParadigm;
-    }
+    settings: Settings;
     entries: LexiconEntry[];
+}
+
+export function new_data(): Data {
+    return {
+        settings: {
+            inflections: {
+                inflection_paradigms: {}
+            },
+            search: {
+                ignore_diacritics: true,
+                ignore_case: true
+            }
+        },
+        entries: []
+    };
 }
 
 enum SearchColumn {
@@ -78,7 +103,7 @@ export class LexiconView extends TextFileView {
     }
 
     clear() {
-        this.jsonData = {inflection_paradigms: {}, entries: []};
+        this.jsonData = new_data();
     }
 
     getViewType() {
@@ -87,7 +112,9 @@ export class LexiconView extends TextFileView {
 
     async onOpen() {
         this.addAction("settings", "Configure Lexicon", () => {
-            new ConfigureModal(this.app, this).open();
+            new ConfigureModal(this.app, this.jsonData.settings, () => {
+                this.requestSave();
+            }).open();
         });
 
         this.addAction("plus", "Add Entry", () => {
@@ -272,7 +299,7 @@ export class LexiconView extends TextFileView {
                 if (ev.currentTarget instanceof HTMLInputElement) {
                     this.searchQuery = ev.currentTarget.value;
                     this.searchColumn = this.searchQuery == "" ? SearchColumn.NONE : SearchColumn.WORD;
-                    while (bodyEl.childNodes.length > 2) {
+                    while (bodyEl.children.length > 2) {
                         bodyEl.lastChild!.remove();
                     }
                     this.render_table(bodyEl);
@@ -282,7 +309,7 @@ export class LexiconView extends TextFileView {
                 if (ev.currentTarget instanceof HTMLInputElement) {
                     this.searchQuery = ev.currentTarget.value;
                     this.searchColumn = this.searchQuery == "" ? SearchColumn.NONE : SearchColumn.ENGLISH;
-                    while (bodyEl.childNodes.length > 2) {
+                    while (bodyEl.children.length > 2) {
                         bodyEl.lastChild!.remove();
                     }
                     this.render_table(bodyEl);
@@ -292,7 +319,7 @@ export class LexiconView extends TextFileView {
                 if (ev.currentTarget instanceof HTMLInputElement) {
                     this.searchQuery = ev.currentTarget.value;
                     this.searchColumn = this.searchQuery == "" ? SearchColumn.NONE : SearchColumn.POS;
-                    while (bodyEl.childNodes.length > 2) {
+                    while (bodyEl.children.length > 2) {
                         bodyEl.lastChild!.remove();
                     }
                     this.render_table(bodyEl);
@@ -302,7 +329,7 @@ export class LexiconView extends TextFileView {
                 if (ev.currentTarget instanceof HTMLInputElement) {
                     this.searchQuery = ev.currentTarget.value;
                     this.searchColumn = this.searchQuery == "" ? SearchColumn.NONE : SearchColumn.NOTES;
-                    while (bodyEl.childNodes.length > 2) {
+                    while (bodyEl.children.length > 2) {
                         bodyEl.lastChild!.remove();
                     }
                     this.render_table(bodyEl);
@@ -321,18 +348,28 @@ export class LexiconView extends TextFileView {
             let matches_search = this.searchQuery == "";
 
             if (!matches_search) {
+                let edit = (s: string) => {
+                    if (this.jsonData.settings.search.ignore_diacritics) {
+                        s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    }
+                    if (this.jsonData.settings.search.ignore_case) {
+                        s = s.toLowerCase();
+                    }
+
+                    return s;
+                };
                 switch (this.searchColumn) {
                     case SearchColumn.WORD:
-                        matches_search = entry.word.contains(this.searchQuery);
+                        matches_search = edit(entry.word).contains(edit(this.searchQuery));
                         break;
                     case SearchColumn.ENGLISH:
-                        matches_search = entry.english.contains(this.searchQuery);
+                        matches_search = edit(entry.english).contains(edit(this.searchQuery));
                         break;
                     case SearchColumn.POS:
-                        matches_search = entry.part_of_speech.contains(this.searchQuery);
+                        matches_search = edit(entry.part_of_speech).contains(edit(this.searchQuery));
                         break;
                     case SearchColumn.NOTES:
-                        matches_search = entry.notes.contains(this.searchQuery);
+                        matches_search = edit(entry.notes).contains(edit(this.searchQuery));
                         break;
                     case SearchColumn.NONE:
                         this.searchQuery = "";
@@ -438,7 +475,7 @@ export class LexiconView extends TextFileView {
                 }
 
                 inflectionButton.onclick = (ev) => {
-                    new InflectionModal(this.app, entry.word, this.jsonData.inflection_paradigms, entry.inflection_table, entry.inflections, (inflection_table, inflections) => {
+                    new InflectionModal(this.app, entry.word, this.jsonData.settings.inflections.inflection_paradigms, entry.inflection_table, entry.inflections, (inflection_table, inflections) => {
                         entry.inflection_table = inflection_table;
                         entry.inflections = inflections;
                         this.requestSave();
