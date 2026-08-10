@@ -236,8 +236,6 @@ export class LexiconView extends TextFileView {
     }
 
     refresh() {
-        this.jsonData.entries = this.jsonData.entries.sort((a: { word: string }, b: { word: string }) => (a.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "") > b.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
-
         this.contentEl.empty();
 
         if (this.jsonData.entries.length == 0) {
@@ -274,207 +272,225 @@ export class LexiconView extends TextFileView {
                 if (ev.currentTarget instanceof HTMLInputElement) {
                     this.searchQuery = ev.currentTarget.value;
                     this.searchColumn = this.searchQuery == "" ? SearchColumn.NONE : SearchColumn.WORD;
-                    this.refresh();
+                    while (bodyEl.childNodes.length > 2) {
+                        bodyEl.lastChild!.remove();
+                    }
+                    this.render_table(bodyEl);
                 }
             };
             englishSearch.oninput = (ev) => {
                 if (ev.currentTarget instanceof HTMLInputElement) {
                     this.searchQuery = ev.currentTarget.value;
                     this.searchColumn = this.searchQuery == "" ? SearchColumn.NONE : SearchColumn.ENGLISH;
-                    this.refresh();
+                    while (bodyEl.childNodes.length > 2) {
+                        bodyEl.lastChild!.remove();
+                    }
+                    this.render_table(bodyEl);
                 }
             };
             posSearch.oninput = (ev) => {
                 if (ev.currentTarget instanceof HTMLInputElement) {
                     this.searchQuery = ev.currentTarget.value;
                     this.searchColumn = this.searchQuery == "" ? SearchColumn.NONE : SearchColumn.POS;
-                    this.refresh();
+                    while (bodyEl.childNodes.length > 2) {
+                        bodyEl.lastChild!.remove();
+                    }
+                    this.render_table(bodyEl);
                 }
             };
             notesSearch.oninput = (ev) => {
                 if (ev.currentTarget instanceof HTMLInputElement) {
                     this.searchQuery = ev.currentTarget.value;
                     this.searchColumn = this.searchQuery == "" ? SearchColumn.NONE : SearchColumn.NOTES;
-                    this.refresh();
+                    while (bodyEl.childNodes.length > 2) {
+                        bodyEl.lastChild!.remove();
+                    }
+                    this.render_table(bodyEl);
                 }
             };
 
-            for (const [i, entry] of this.jsonData.entries.entries()) {
-                // Defaults to "true" if there's no search query, otherwise will be false and will go through the check below
-                let matches_search = this.searchQuery == "";
+            this.render_table(bodyEl);
+        }
+    }
 
-                if (!matches_search) {
-                    switch (this.searchColumn) {
-                        case SearchColumn.WORD:
-                            matches_search = entry.word.contains(this.searchQuery);
-                            break;
-                        case SearchColumn.ENGLISH:
-                            matches_search = entry.english.contains(this.searchQuery);
-                            break;
-                        case SearchColumn.POS:
-                            matches_search = entry.part_of_speech.contains(this.searchQuery);
-                            break;
-                        case SearchColumn.NOTES:
-                            matches_search = entry.notes.contains(this.searchQuery);
-                            break;
-                        case SearchColumn.NONE:
-                            this.searchQuery = "";
-                            break;
-                    }
+    render_table(body: HTMLElement) {
+        this.jsonData.entries = this.jsonData.entries.sort((a: { word: string }, b: { word: string }) => (a.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "") > b.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
+        
+        for (const entry of this.jsonData.entries) {
+            // Defaults to "true" if there's no search query, otherwise will be false and will go through the check below
+            let matches_search = this.searchQuery == "";
+
+            if (!matches_search) {
+                switch (this.searchColumn) {
+                    case SearchColumn.WORD:
+                        matches_search = entry.word.contains(this.searchQuery);
+                        break;
+                    case SearchColumn.ENGLISH:
+                        matches_search = entry.english.contains(this.searchQuery);
+                        break;
+                    case SearchColumn.POS:
+                        matches_search = entry.part_of_speech.contains(this.searchQuery);
+                        break;
+                    case SearchColumn.NOTES:
+                        matches_search = entry.notes.contains(this.searchQuery);
+                        break;
+                    case SearchColumn.NONE:
+                        this.searchQuery = "";
+                        break;
+                }
+            }
+
+            if (matches_search) {
+                const rowEl = body.createEl("tr");
+
+                const wordButton = rowEl
+                    .createEl("td")
+                    .createEl("button", { text: entry.word, cls: "lexicon-button word-button" });
+                wordButton.onclick = (ev) => {
+                    new WordModal(this.app, entry.word, (result) => {
+                        entry.word = result;
+                        this.requestSave();
+                        wordButton.setText(entry.word);
+                    }).open();
+                };
+
+                const englishButton = rowEl
+                    .createEl("td")
+                    .createEl("button", { text: entry.english, cls: "lexicon-button english-button" });
+                englishButton.onclick = (ev) => {
+                    new EnglishModal(this.app, entry.english, (result) => {
+                        entry.english = result;
+                        this.requestSave();
+                        englishButton.setText(entry.english);
+                    }).open();
+                };
+
+                const partOfSpeechButton = rowEl
+                    .createEl("td")
+                    .createEl("button", { text: entry.part_of_speech, cls: "lexicon-button part-of-speech-button" });
+                partOfSpeechButton.onclick = (ev) => {
+                    new PartOfSpeechModal(this.app, entry.part_of_speech, (result) => {
+                        entry.part_of_speech = result;
+                        this.requestSave();
+                        partOfSpeechButton.setText(entry.part_of_speech);
+                    }).open();
+                };
+
+                const etymologyButton = rowEl
+                    .createEl("td")
+                    .createEl("button", { cls: "lexicon-button etymology-button" });
+
+                let etymology_span = this.buildEtymologySpan(etymologyButton, entry);
+
+                etymologyButton.appendChild(etymology_span);
+                etymologyButton.onclick = (ev) => {
+                    new EtymologyModal(this.app, entry.etymology, (result) => {
+                        entry.etymology = JSON.parse(result);
+                        this.requestSave();
+                        etymologyButton.empty();
+                        etymologyButton.appendChild(this.buildEtymologySpan(etymologyButton, entry));
+                    }).open();
+                };
+
+                const notesButton = rowEl
+                    .createEl("td")
+                    .createEl("button", { cls: "lexicon-button notes-button" });
+
+                this.setNoteButtonText(notesButton, entry);
+
+                notesButton.onclick = (ev) => {
+                    new NotesModal(this.app, entry.notes, (result) => {
+                        entry.notes = result;
+                        this.requestSave();
+                        this.setNoteButtonText(notesButton, entry);
+                    }).open();
+                };
+
+                let inflection_div = rowEl
+                    .createEl("td")
+                    .createDiv({ cls: "inflection" });
+
+                let inflection_card = inflection_div
+                    .createDiv({ cls: "inflection-card is-collapsed" });
+
+                let inflection_contents = inflection_div
+                    .createDiv({ cls: "inflection-contents" });
+
+                inflection_contents.addClass("hidden");
+
+                let inflectionButton = inflection_card
+                    .createEl("button", { cls: "lexicon-button inflection-button" });
+
+                let inflection_label_container = inflection_card
+                    .createDiv({ cls: "inflection-label-container" });
+
+                if (
+                    !("inflection_table" in entry) ||
+                    !("top_headers" in entry.inflection_table) ||
+                    !(entry.inflection_table.top_headers instanceof Array) ||
+                    !('left_headers' in entry.inflection_table) ||
+                    !(entry.inflection_table.left_headers instanceof Array)
+                ) {
+                    entry.inflection_table = { top_headers: [], left_headers: [] };
+                }
+                if (!("inflections" in entry && entry.inflections instanceof Array)) {
+                    entry.inflections = [];
                 }
 
-                if (matches_search) {
-                    const rowEl = bodyEl.createEl("tr");
-
-                    const wordButton = rowEl
-                        .createEl("td")
-                        .createEl("button", { text: entry.word, cls: "lexicon-button word-button" });
-                    wordButton.onclick = (ev) => {
-                        new WordModal(this.app, entry.word, (result) => {
-                            entry.word = result;
-                            this.requestSave();
-                            wordButton.setText(entry.word);
-                        }).open();
-                    };
-
-                    const englishButton = rowEl
-                        .createEl("td")
-                        .createEl("button", { text: entry.english, cls: "lexicon-button english-button" });
-                    englishButton.onclick = (ev) => {
-                        new EnglishModal(this.app, entry.english, (result) => {
-                            entry.english = result;
-                            this.requestSave();
-                            englishButton.setText(entry.english);
-                        }).open();
-                    };
-
-                    const partOfSpeechButton = rowEl
-                        .createEl("td")
-                        .createEl("button", { text: entry.part_of_speech, cls: "lexicon-button part-of-speech-button" });
-                    partOfSpeechButton.onclick = (ev) => {
-                        new PartOfSpeechModal(this.app, entry.part_of_speech, (result) => {
-                            entry.part_of_speech = result;
-                            this.requestSave();
-                            partOfSpeechButton.setText(entry.part_of_speech);
-                        }).open();
-                    };
-
-                    const etymologyButton = rowEl
-                        .createEl("td")
-                        .createEl("button", { cls: "lexicon-button etymology-button" });
-
-                    let etymology_span = this.buildEtymologySpan(etymologyButton, entry);
-
-                    etymologyButton.appendChild(etymology_span);
-                    etymologyButton.onclick = (ev) => {
-                        new EtymologyModal(this.app, entry.etymology, (result) => {
-                            entry.etymology = JSON.parse(result);
-                            this.requestSave();
-                            etymologyButton.empty();
-                            etymologyButton.appendChild(this.buildEtymologySpan(etymologyButton, entry));
-                        }).open();
-                    };
-
-                    const notesButton = rowEl
-                        .createEl("td")
-                        .createEl("button", { cls: "lexicon-button notes-button" });
-
-                    this.setNoteButtonText(notesButton, entry);
-
-                    notesButton.onclick = (ev) => {
-                        new NotesModal(this.app, entry.notes, (result) => {
-                            entry.notes = result;
-                            this.requestSave();
-                            this.setNoteButtonText(notesButton, entry);
-                        }).open();
-                    };
-
-                    let inflection_div = rowEl
-                        .createEl("td")
-                        .createDiv({ cls: "inflection" });
-
-                    let inflection_card = inflection_div
-                        .createDiv({ cls: "inflection-card is-collapsed" });
-
-                    let inflection_contents = inflection_div
-                        .createDiv({ cls: "inflection-contents" });
-
-                    inflection_contents.addClass("hidden");
-
-                    let inflectionButton = inflection_card
-                        .createEl("button", { cls: "lexicon-button inflection-button" });
-
-                    let inflection_label_container = inflection_card
-                        .createDiv({ cls: "inflection-label-container" });
-
-                    if (
-                        !("inflection_table" in entry) ||
-                        !("top_headers" in entry.inflection_table) ||
-                        !(entry.inflection_table.top_headers instanceof Array) ||
-                        !('left_headers' in entry.inflection_table) ||
-                        !(entry.inflection_table.left_headers instanceof Array)
-                    ) {
-                        entry.inflection_table = { top_headers: [], left_headers: [] };
-                    }
-                    if (!("inflections" in entry && entry.inflections instanceof Array)) {
-                        entry.inflections = [];
-                    }
-
-                    inflectionButton.onclick = (ev) => {
-                        new InflectionModal(this.app, entry.word, this.jsonData.inflection_paradigms, entry.inflection_table, entry.inflections, (inflection_table, inflections) => {
-                            entry.inflection_table = inflection_table;
-                            entry.inflections = inflections;
-                            this.requestSave();
-                            if (
-                                (entry.inflection_table.top_headers.length == 0) ||
-                                (entry.inflection_table.left_headers.length == 0) ||
-                                (entry.inflections.length == 0)
-                            ) {
+                inflectionButton.onclick = (ev) => {
+                    new InflectionModal(this.app, entry.word, this.jsonData.inflection_paradigms, entry.inflection_table, entry.inflections, (inflection_table, inflections) => {
+                        entry.inflection_table = inflection_table;
+                        entry.inflections = inflections;
+                        this.requestSave();
+                        if (
+                            (entry.inflection_table.top_headers.length == 0) ||
+                            (entry.inflection_table.left_headers.length == 0) ||
+                            (entry.inflections.length == 0)
+                        ) {
+                            this.deleteInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
+                        }
+                        else {
+                            if (inflection_contents.hasChildNodes()) {
+                                inflection_contents.removeChild(inflection_contents.firstChild!);
+                                inflection_contents.appendChild(this.buildInflectionTable(entry));
+                            } else {
                                 this.deleteInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
+                                this.addInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
                             }
-                            else {
-                                if (inflection_contents.hasChildNodes()) {
-                                    inflection_contents.removeChild(inflection_contents.firstChild!);
-                                    inflection_contents.appendChild(this.buildInflectionTable(entry));
-                                } else {
-                                    this.deleteInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
-                                    this.addInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
-                                }
 
-                            }
-                        }).open();
-                    };
+                        }
+                    }).open();
+                };
 
-                    setIcon(inflectionButton, 'table');
+                setIcon(inflectionButton, 'table');
 
-                    let inflection_label = inflection_label_container
-                        .createDiv({ cls: "inflection-label" });
+                let inflection_label = inflection_label_container
+                    .createDiv({ cls: "inflection-label" });
 
-                    // This will get overwritten by the line below this if it needs to be.
-                    inflection_label.setText("No Inflection");
+                // This will get overwritten by the line below this if it needs to be.
+                inflection_label.setText("No Inflection");
 
-                    if (Array.isArray(entry.inflections) && entry.inflections.length > 0) {
-                        this.addInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
-                    }
-
-                    const deleteButton = rowEl
-                        .createEl("td")
-                        .createEl("button", { cls: "lexicon-button delete-button" });
-                    setIcon(deleteButton, 'trash-2');
-                    deleteButton.onclick = () => {
-                        new DeleteModal(this.app, "Delete Lexeme", "Are you sure you want to delete this lexeme? This cannot be undone!", (confirm) => {
-                            if (confirm) {
-                                this.jsonData.entries.splice(this.jsonData.entries.indexOf(entry), 1);
-                                this.requestSave();
-                                deleteButton.parentElement!.parentElement!.remove();
-                                if (this.jsonData.entries.length == 0) {
-                                    this.refresh();
-                                }
-                            }
-                        }).open();
-                    };
-
+                if (Array.isArray(entry.inflections) && entry.inflections.length > 0) {
+                    this.addInflectionContents(inflection_label_container, inflection_card, inflection_contents, inflection_label, inflectionButton, entry);
                 }
+
+                const deleteButton = rowEl
+                    .createEl("td")
+                    .createEl("button", { cls: "lexicon-button delete-button" });
+                setIcon(deleteButton, 'trash-2');
+                deleteButton.onclick = () => {
+                    new DeleteModal(this.app, "Delete Lexeme", "Are you sure you want to delete this lexeme? This cannot be undone!", (confirm) => {
+                        if (confirm) {
+                            this.jsonData.entries.splice(this.jsonData.entries.indexOf(entry), 1);
+                            this.requestSave();
+                            deleteButton.parentElement!.parentElement!.remove();
+                            if (this.jsonData.entries.length == 0) {
+                                this.refresh();
+                            }
+                        }
+                    }).open();
+                };
+
             }
         }
     }
