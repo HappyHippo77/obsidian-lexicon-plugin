@@ -149,7 +149,15 @@
 .lexicon-header-row {
     font-weight: bold;
 }
-
+.lexicon-header-row .lexicon-header-icon {
+    display: flex;
+    align-items: center;
+    --icon-size: var(--icon-s);
+    margin-left: 2px;
+}
+.lexicon-header-row .lexicon-header {
+    display: flex;
+}
 
 .lexicon-button:not(:hover) {
     background-color: transparent;
@@ -172,7 +180,6 @@
 .lexicon-button.delete-button .svg-icon {
     stroke: var(--color-red);
 }
-
 
 
 .english-button {

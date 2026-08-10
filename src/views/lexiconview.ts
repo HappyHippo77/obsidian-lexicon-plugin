@@ -75,6 +75,12 @@ enum SearchColumn {
     POS,
     NOTES
 }
+enum SortColumn {
+    WORD,
+    ENGLISH,
+    POS,
+    NOTES
+}
 
 export const VIEW_TYPE_LEXICON = "lexicon-view";
 
@@ -84,7 +90,8 @@ export class LexiconView extends TextFileView {
     tableEl!: HTMLElement;
     searchQuery = "";
     searchColumn: SearchColumn = SearchColumn.NONE;
-    selectedSearch = "";
+    sortColumn: SortColumn = SortColumn.WORD;
+    sortReverse: boolean = false;
 
     getIcon(): IconName {
         return 'book-a';
@@ -270,19 +277,78 @@ export class LexiconView extends TextFileView {
             setIcon(container, "x");
             container.createSpan("lexicon-empty-label").setText("Nothing here yet! Press the + button in the top right to add an entry.");
         } else {
-            let tableContainer = this.contentEl.createEl("div", { cls: "lexicon-container" })
+            let tableContainer = this.contentEl.createEl("div", { cls: "lexicon-container" });
             this.tableEl = tableContainer.createEl("table", { cls: "lexicon-table" });
             const bodyEl = this.tableEl.createEl("tbody");
 
             // Create the header rows. Add a button on the far right to add a new entry.
-            let lexicon_header_row = bodyEl
-                .createEl("tr", { cls: "lexicon-header-row" })
-            lexicon_header_row.createEl("td", { text: "Word" })
-            lexicon_header_row.createEl("td", { text: "English" })
-            lexicon_header_row.createEl("td", { text: "POS" })
-            lexicon_header_row.createEl("td", { text: "Etymology" })
-            lexicon_header_row.createEl("td", { text: "Notes" })
-            lexicon_header_row.createEl("td", { text: "Inflection" })
+            let lexicon_header_row = bodyEl.createEl("tr", { cls: "lexicon-header-row" });
+            let word_header = lexicon_header_row.createEl("td").createDiv({ text: "Word", cls: "lexicon-header" });
+            let english_header = lexicon_header_row.createEl("td").createDiv({ text: "English", cls: "lexicon-header" });
+            let pos_header = lexicon_header_row.createEl("td").createDiv({ text: "POS", cls: "lexicon-header" });
+            lexicon_header_row.createEl("td", { text: "Etymology" });
+            let notes_header = lexicon_header_row.createEl("td").createDiv({ text: "Notes", cls: "lexicon-header" });
+            lexicon_header_row.createEl("td", { text: "Inflection" });
+
+            let sort_header: HTMLElement;
+            switch (this.sortColumn) {
+                case SortColumn.WORD:
+                    sort_header = word_header;
+                    break;
+                case SortColumn.ENGLISH:
+                    sort_header = english_header;
+                    break;
+                case SortColumn.POS:
+                    sort_header = pos_header;
+                    break;
+                case SortColumn.NOTES:
+                    sort_header = notes_header;
+                    break;
+            }
+
+            let icon_container = sort_header.createDiv({ cls: "lexicon-header-icon" });
+            this.sortReverse ? setIcon(icon_container, "arrow-up-narrow-wide") : setIcon(icon_container, "arrow-down-narrow-wide");
+
+            word_header.onClickEvent(() => {
+                if (this.sortColumn == SortColumn.WORD) {
+                    this.sortReverse = this.sortReverse ? false : true;
+                } else {
+                    this.sortColumn = SortColumn.WORD;
+                }
+                this.searchColumn = SearchColumn.NONE;
+                this.searchQuery = "";
+                this.refresh();
+            });
+            english_header.onClickEvent(() => {
+                if (this.sortColumn == SortColumn.ENGLISH) {
+                    this.sortReverse = this.sortReverse ? false : true;
+                } else {
+                    this.sortColumn = SortColumn.ENGLISH;
+                }
+                this.searchColumn = SearchColumn.NONE;
+                this.searchQuery = "";
+                this.refresh();
+            });
+            pos_header.onClickEvent(() => {
+                if (this.sortColumn == SortColumn.POS) {
+                    this.sortReverse = this.sortReverse ? false : true;
+                } else {
+                    this.sortColumn = SortColumn.POS;
+                }
+                this.searchColumn = SearchColumn.NONE;
+                this.searchQuery = "";
+                this.refresh();
+            });
+            notes_header.onClickEvent(() => {
+                if (this.sortColumn == SortColumn.NOTES) {
+                    this.sortReverse = this.sortReverse ? false : true;
+                } else {
+                    this.sortColumn = SortColumn.NOTES;
+                }
+                this.searchColumn = SearchColumn.NONE;
+                this.searchQuery = "";
+                this.refresh();
+            });
 
             // Create the search row. This row contains all of the search bars for searchable columns.
             let lexicon_search_row = bodyEl.createEl("tr", { cls: "lexicon-search-row" });
@@ -341,8 +407,37 @@ export class LexiconView extends TextFileView {
     }
 
     render_table(body: HTMLElement) {
-        this.jsonData.entries = this.jsonData.entries.sort((a: { word: string }, b: { word: string }) => (a.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "") > b.word.normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
-        
+        switch (this.sortColumn) {
+            case SortColumn.WORD:
+                if (this.sortReverse) {
+                        this.jsonData.entries = this.jsonData.entries.sort((a: { word: string }, b: { word: string }) => (a.word.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") < b.word.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
+                } else {
+                        this.jsonData.entries = this.jsonData.entries.sort((a: { word: string }, b: { word: string }) => (a.word.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") > b.word.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
+                }
+                break;
+            case SortColumn.ENGLISH:
+                if (this.sortReverse) {
+                        this.jsonData.entries = this.jsonData.entries.sort((a: { english: string }, b: { english: string }) => (a.english.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") < b.english.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
+                } else {
+                        this.jsonData.entries = this.jsonData.entries.sort((a: { english: string }, b: { english: string }) => (a.english.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") > b.english.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
+                }
+                break;
+            case SortColumn.POS:
+                if (this.sortReverse) {
+                        this.jsonData.entries = this.jsonData.entries.sort((a: { part_of_speech: string }, b: { part_of_speech: string }) => (a.part_of_speech.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") < b.part_of_speech.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
+                } else {
+                        this.jsonData.entries = this.jsonData.entries.sort((a: { part_of_speech: string }, b: { part_of_speech: string }) => (a.part_of_speech.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") > b.part_of_speech.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
+                }
+                break;
+            case SortColumn.NOTES:
+                if (this.sortReverse) {
+                        this.jsonData.entries = this.jsonData.entries.sort((a: { notes: string }, b: { notes: string }) => (a.notes.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") < b.notes.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
+                } else {
+                        this.jsonData.entries = this.jsonData.entries.sort((a: { notes: string }, b: { notes: string }) => (a.notes.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") > b.notes.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") ? 1 : -1));
+                }
+                break;
+        }
+
         for (const entry of this.jsonData.entries) {
             // Defaults to "true" if there's no search query, otherwise will be false and will go through the check below
             let matches_search = this.searchQuery == "";
